@@ -7,6 +7,7 @@ name = "verdictplane"
 version = "0.1.0"
 description = "In-path, zero-egress control plane for AI actions: tamper-evident provenance, deterministic policy, human approval gates."
 requires-python = ">=3.12"
+readme = "README.md"
 authors = [{ name = "Frank Asante Van Laarhoven", email = "frankleroyvan@gmail.com" }]
 license = { text = "MIT" }
 keywords = ["ai-governance", "provenance", "human-in-the-loop", "policy", "mcp", "audit"]
