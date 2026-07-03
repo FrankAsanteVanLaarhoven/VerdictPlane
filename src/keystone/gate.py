@@ -29,6 +29,15 @@ class Gate:
     def _resolved_path(self, token: str) -> str:
         return os.path.join(self.root, "resolved", f"{token}.json")
 
+    @staticmethod
+    def _write_json(path: str, entry: dict) -> None:
+        """Atomic write: a concurrent reader sees the old state or the new
+        state, never a truncated file (os.replace is atomic on POSIX)."""
+        tmp = f"{path}.tmp.{os.getpid()}"
+        with open(tmp, "w") as f:
+            json.dump(entry, f)
+        os.replace(tmp, path)
+
     def submit(self, token: str, action: dict, advisory: str | None = None) -> None:
         entry = {
             "token": token,
@@ -36,8 +45,7 @@ class Gate:
             "advisory": advisory,
             "submitted_ts": time.time_ns(),
         }
-        with open(self._pending_path(token), "w") as f:
-            json.dump(entry, f)
+        self._write_json(self._pending_path(token), entry)
 
     def list_pending(self) -> list[dict]:
         pending_dir = os.path.join(self.root, "pending")
@@ -54,8 +62,8 @@ class Gate:
         try:
             with open(self._resolved_path(token)) as f:
                 return json.load(f)
-        except OSError:
-            return None
+        except (OSError, json.JSONDecodeError):
+            return None  # absent or in-flight; caller polls again
 
     def resolve(self, token: str, approved: bool, by: str = "unknown") -> dict:
         pending = self._pending_path(token)
@@ -66,8 +74,7 @@ class Gate:
         entry.update(
             approved=bool(approved), resolved_by=by, resolved_ts=time.time_ns()
         )
-        with open(self._resolved_path(token), "w") as f:
-            json.dump(entry, f)
+        self._write_json(self._resolved_path(token), entry)
         os.remove(pending)
         return entry
 
