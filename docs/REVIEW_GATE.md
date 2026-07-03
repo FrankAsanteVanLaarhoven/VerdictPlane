@@ -1,53 +1,69 @@
 # VerdictPlane — Review Gate
 
-A lightweight checklist run **before calling any output final** — a release, a paper, a deck, a
-report, or an upgrade document. It exists to catch the failure the T7 review caught: claims drifting
-ahead of what the code/artefacts actually support. Adapted from external reviewer feedback and scoped
-to a software-governance + benchmark project.
+VerdictPlane's instantiation of the portfolio-wide **Mandatory Research Review Gate**. Run before any
+output — release, paper, deck, report, upgrade document — is marked final.
 
-Mark items **N/A** where they don't apply to the output type (noted per item).
+Items tagged **(embodied)** apply to robotics / physical-deployment outputs and are **N/A for
+VerdictPlane** (a software governance library — no robot, simulator, or physical deployment). Items
+tagged **(thesis)** apply to PhD-framing outputs.
 
-## Always (every output)
+**First principle (the T7 lesson): a claim must not exceed what the code / artefacts prove.**
 
-- [ ] **Claims match the artefacts.** Every quantitative claim regenerates from `make bench` /
-      `make test` / a committed file, and the wording does not exceed what the mechanism provides
-      (e.g. HMAC = *keyed tamper-evidence*, **not** non-repudiation; anchoring covers truncation
-      *below the last anchor*).
-- [ ] **Scope stated, no overclaiming.** Limitations are written down, not hidden. No overclaiming on
-      synthetic results, no hidden oracle/label leakage, no "SOTA" without external reproduction.
-- [ ] **Metrics are explicitly defined** — name, formula/definition, what it measures, why it matters
-      (see [`docs/METRICS.md`](METRICS.md)).
-- [ ] **Metric-to-failure mapping is present**, and each metric is tagged *measured / operational /
-      planned* so a reader can't mistake a roadmap metric for a measured one.
-- [ ] **No forbidden attribution / no secrets** in the diff or commit message (pre-push guard passes).
+## 1 · Evaluation metrics
+Each metric explicitly defined — name, formula/operational definition, what it measures, why it
+matters, **how it is computed**, and whether it is **deployable** (runtime cost), **diagnostic**
+(verification), or both. See [`docs/METRICS.md`](METRICS.md).
+- [ ] every reported metric is there with all six fields
+- [ ] measured / operational / planned status is explicit
 
-## Core invariants (code / release outputs)
+## 2 · Metric-to-failure mapping
+- [ ] every metric maps to the failure it exposes, the claim it **supports**, and the claim it **limits**
+- [ ] no roadmap metric is presented as measured
 
-- [ ] **No model in the enforcement path** (static import allowlist test still green).
-- [ ] **Zero egress** (static + runtime socket kill-switch + empty-netns battery still green).
-- [ ] **Append-only provenance**; the gate is **fail-safe → deny**; unmatched actions hit the safe
-      default.
-- [ ] **Reproducibility:** benchmark/evidence captures are commit-pinned; a full run on a clean tree
-      regenerates them (`make repro` for a turnkey container).
-- [ ] Test count and version strings updated; suite green.
+## 3 · Method description
+- [ ] inputs, outputs, and the policy / decision path are stated
+- [ ] what is held fixed vs what varies between variants
+- [ ] what is **deployable at runtime** vs **diagnostic-only**
+- [ ] where oracle / label leakage is prevented — for VerdictPlane this is the
+      **no-model-in-enforcement** static guarantee (the decision cannot consult a model, so it cannot
+      leak a label)
 
-## Method & setup (research outputs: papers, decks — esp. EAG-Bench)
+## 4 · Experiment setup
+- [ ] corpus / dataset, split, and per-action `source` provenance (EAG-Bench)
+- [ ] hardware / software, and the **CPU governor** for any latency claim
+- [ ] baselines, ablations, thresholds, evaluation protocol
+- [ ] reproduction commands / evidence path (`make repro`; commit-pinned artefacts)
+- [ ] **(embodied — N/A here)** simulator or physical environment; robot / device platform
 
-- [ ] **Method** states: inputs, the decision path, what is *deployable* vs *diagnostic*, and what is
-      held fixed (seeds, policy, hardware, governor).
-- [ ] **Experiment setup**: dataset/split + `source` provenance (synthetic / real / anonymized),
-      protocol, baselines, ablations, hardware/software details.
-- [ ] **Related work** is *analytical* — grouped by theme with an explicit research gap — not a
-      descriptive list.
-- [ ] **Corpus integrity** (EAG-Bench): labels reproduce from deterministic policy; an independent
-      reviewer validated a sample; per-action rationale and disagreements are published.
+## 5 · Related work
+- [ ] analytical, grouped by theme — not a list (cf. README "How VerdictPlane compares")
+- [ ] per theme: what it solves, representative work, what it does *not* address, how this differs
+- [ ] the research gap is stated and its importance justified
 
-## Narrative (decks / talks)
+## 6 · Failure, iteration, research process
+Show the real path, not a clean-room story:
+hypothesis → design → initial results → failures / challenges → refinement → further experiments →
+insights → conclusions.
+- [ ] failed attempts, blocked claims, and lessons are recorded — e.g. "non-repudiation" blocked down
+      to *keyed tamper-evidence*; the benchmark cold-run spread found and fixed; the allow-path
+      provenance gap surfaced and closed with an opt-in strict mode
 
-- [ ] Logical flow: **Problem → Evidence → Method → Results → Challenges → Insights**.
-- [ ] The single headline claim is stated once, precisely, and is defensible on its own slide.
+## 7 · Claim boundary
+Every claim scoped. Check for:
+- [ ] no oracle / privileged information behind a deployable claim
+- [ ] no benchmark-wide claim from a small diagnostic split
+- [ ] no invented result without a regenerable log / artefact
+- [ ] no "safety solved" / "unbreakable" language
+- [ ] no overclaiming beyond the evidence — HMAC ≠ non-repudiation; anchoring = truncation *below the
+      last anchor*; "standard-setting" not "SOTA" before external reproduction
+- [ ] **(embodied — N/A here)** no simulation result presented as physical-deployment proof
+
+## 8 · Slides / talks
+Narrative: Problem → why it matters → evidence of failure → metric-to-failure mapping → method →
+setup → results → failures / challenges → refinements → insights → next steps.
+- [ ] one precise headline claim, defensible on its own slide
+- [ ] **(thesis)** three-paper route + next steps where the output is PhD-framing
 
 ---
-
-*Keep this gate lightweight. If an item repeatedly doesn't apply, prune it — a checklist nobody runs
-is worse than none.*
+*Keep it lightweight — prune items that don't get used. The portfolio-wide version is the working
+standard; this file is VerdictPlane's tailored instantiation.*

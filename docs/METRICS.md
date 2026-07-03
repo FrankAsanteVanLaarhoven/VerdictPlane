@@ -7,6 +7,11 @@ measured unless it is regenerable from `make bench` / `make test`.
 Status key: **[measured]** regenerates from committed artefacts · **[operational]** cheap to add,
 not yet a bench target · **[planned: EAG-Bench]** Phase B, not yet measured.
 
+**How computed & kind.** Measured metrics regenerate from `make bench` (latency, throughput, tamper,
+completeness, fail-safe) or `make test` (truncation/rollback, zero-egress). Latency and throughput
+are **deployable** (they bound the runtime cost of sitting in the loop); the integrity and egress
+metrics are **diagnostic** (they verify a property, not a per-request cost).
+
 ## Measured now (v0.2.0-alpha)
 
 | Metric | Definition | Failure exposed | Why it matters | Status |
