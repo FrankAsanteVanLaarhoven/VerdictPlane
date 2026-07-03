@@ -68,6 +68,8 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
     commit = sh(["git", "rev-parse", "HEAD"]).stdout.strip()
+    if sh(["git", "status", "--porcelain"]).stdout.strip():
+        commit += " (working tree DIRTY at capture time)"
     commits = sh(["git", "log", "--oneline", "-6"]).stdout
 
     # E1 — full suite
