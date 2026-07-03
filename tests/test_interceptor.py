@@ -208,3 +208,79 @@ def test_redact_masks_and_truncates():
     assert out["nested"]["auth_token"] == "[REDACTED]"
     assert out["blob"].endswith("...[truncated]") and len(out["blob"]) < 300
     assert out["n"] == 3
+
+
+# ---- strict provenance (opt-in: record allow intent BEFORE the side effect) ----
+
+ALLOW_ACTION = {"tool": "notes.append", "effect": "write", "args": {"text": "hi"}}
+
+
+def test_strict_provenance_records_intent_before_allow_side_effect(env):
+    at_exec = {}
+
+    def side_effect():
+        at_exec["snapshot"] = outcomes(env["ledger"])  # what is on disk when the effect runs
+        return "ok"
+
+    result = govern(dict(ALLOW_ACTION), side_effect, strict_provenance=True, **env)
+    assert result == "ok"
+    assert at_exec["snapshot"] == ["intent"]  # intent was durably recorded BEFORE the effect
+    assert outcomes(env["ledger"]) == ["intent", "executed"]
+    assert env["ledger"].verify() == (True, None)
+
+
+def test_default_mode_allow_records_only_on_completion(env):
+    at_exec = {}
+
+    def side_effect():
+        at_exec["snapshot"] = outcomes(env["ledger"])
+        return "ok"
+
+    govern(dict(ALLOW_ACTION), side_effect, strict_provenance=False, **env)
+    assert at_exec["snapshot"] == []  # default: nothing recorded until the effect completes
+    assert outcomes(env["ledger"]) == ["executed"]
+
+
+def test_strict_provenance_preserves_intent_when_call_fails(env):
+    def boom():
+        raise RuntimeError("db unreachable")
+
+    with pytest.raises(RuntimeError):
+        govern(dict(ALLOW_ACTION), boom, strict_provenance=True, **env)
+    # the intent survives the failure — the allowed action is not silently unlogged
+    assert outcomes(env["ledger"]) == ["intent", "failed"]
+    assert env["ledger"].verify() == (True, None)
+
+
+def test_strict_provenance_keeps_one_terminal_record_per_call(env):
+    TERMINAL = {"executed", "blocked", "denied_by_human", "failed"}
+    for _ in range(5):
+        govern(dict(ALLOW_ACTION), lambda: None, strict_provenance=True, **env)
+    terminal = [o for o in outcomes(env["ledger"]) if o in TERMINAL]
+    assert len(terminal) == 5  # 'intent' is non-terminal; completeness KPI unchanged
+
+
+def test_governed_decorator_honours_strict_provenance(env):
+    @governed(effect="write", tool="notes.append", strict_provenance=True, **env)
+    def note(text):
+        return text
+
+    assert note("hello") == "hello"
+    assert outcomes(env["ledger"]) == ["intent", "executed"]
+
+
+def test_strict_provenance_env_parsing(monkeypatch):
+    from verdictplane import interceptor
+    for truthy in ("1", "true", "YES", "On"):
+        monkeypatch.setenv("VERDICTPLANE_STRICT_PROVENANCE", truthy)
+        assert interceptor._strict_from_env() is True
+    for falsy in ("0", "false", "off", ""):
+        monkeypatch.setenv("VERDICTPLANE_STRICT_PROVENANCE", falsy)
+        assert interceptor._strict_from_env() is False
+
+
+def test_strict_provenance_module_default_is_used_when_arg_omitted(env, monkeypatch):
+    from verdictplane import interceptor
+    monkeypatch.setattr(interceptor, "_STRICT_ENV", True)
+    govern(dict(ALLOW_ACTION), lambda: None, **env)  # no strict_provenance arg -> module default
+    assert outcomes(env["ledger"]) == ["intent", "executed"]

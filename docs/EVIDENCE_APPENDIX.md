@@ -13,6 +13,7 @@ external auditor can reproduce them. Companion documents:
 | Zero egress at runtime | Socket kill-switch + empty network namespace | `make test` (tests/test_zero_egress.py) |
 | Tamper detection at exact index | Randomized forgery battery + live forgery demo | `make test` (tests/test_provenance.py) + `make evidence` (E3, E6) |
 | 100% governed-call ledger coverage | Mixed-workload completeness incl. P4 wrappers | `make test` (tests/test_workloads.py) + `make bench` |
+| Strict provenance records allow-intent *before* the side effect (opt-in) | `intent`→`executed` ordering; the `intent` survives a failed call; `intent` is non-terminal so the completeness KPI is unchanged | `VERDICTPLANE_STRICT_PROVENANCE=1`; `make test` (tests/test_interceptor.py strict-provenance cases) |
 | Human gate blocks side effects (approve/deny/timeout) | Live cross-process before/after transcript | `make evidence` (E4); interactive: `examples/quickstart.py` + `verdictplane approve` |
 | Fail-closed on failed accuracy gate | Deterministic deny, no reviewer contacted | `make test` (tests/test_workloads.py) |
 | Advisory is fail-safe and cannot decide | Broken-transport run, decisions byte-identical | `make bench` (fail_safe section) + `make test` (tests/test_advisory.py) |

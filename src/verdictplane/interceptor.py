@@ -1,16 +1,17 @@
 """In-path enforcement: deterministic policy check + provenance + human gate.
 
-`govern()` is the one choke point: it evaluates policy (no model), appends the
-decision to the tamper-evident ledger BEFORE any side effect, blocks on the
+`govern()` is the one choke point: it evaluates policy (no model), records the
+decision in the tamper-evident ledger (before the side effect for `deny` and
+`require_human`, and — under strict provenance — for `allow` too), blocks on the
 human gate when required, and records the terminal outcome. A governed side
-effect cannot run un-recorded, and cannot run at all if policy denies it or a
-human does not approve it.
+effect cannot run at all if policy denies it or a human does not approve it.
 
 Enforcement-path module: deterministic, zero-egress, no model client.
 """
 
 import functools
 import inspect
+import os
 import re
 from contextvars import ContextVar
 
@@ -24,6 +25,17 @@ _SECRET_KEY = re.compile(
     re.IGNORECASE,
 )
 _MAX_VALUE_LEN = 256
+
+_STRICT_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _strict_from_env() -> bool:
+    """Resolve the default strict-provenance setting from the environment."""
+    return os.environ.get("VERDICTPLANE_STRICT_PROVENANCE", "").strip().lower() in _STRICT_TRUTHY
+
+
+# Read once at import; an explicit strict_provenance= argument always overrides it.
+_STRICT_ENV = _strict_from_env()
 
 
 class PolicyDenied(Exception):
@@ -59,8 +71,20 @@ def redact(args: dict) -> dict:
     return out
 
 
-def govern(action: dict, call, *, policy, ledger, gate, gate_timeout: float | None = None):
-    """Enforce policy on one action, record provenance, then (maybe) execute."""
+def govern(action: dict, call, *, policy, ledger, gate, gate_timeout: float | None = None,
+           strict_provenance: bool | None = None):
+    """Enforce policy on one action, record provenance, then (maybe) execute.
+
+    Provenance ordering: the decision is always evaluated before execution, and is
+    recorded before the side effect for ``deny`` and ``require_human``. On the
+    ``allow`` hot path the single terminal record is written on completion by
+    default. Set ``strict_provenance=True`` (or ``VERDICTPLANE_STRICT_PROVENANCE=1``)
+    to additionally write an ``intent`` record BEFORE the allow side effect, so a
+    crash mid-execution leaves a recorded intent rather than a silent gap — at the
+    cost of a second ledger append per allowed action. ``intent`` is non-terminal;
+    completeness still means exactly one terminal record per governed call.
+    """
+    strict = _STRICT_ENV if strict_provenance is None else strict_provenance
     action = Action.model_validate(action).model_dump()
     decision, rule = evaluate(action, policy)  # deterministic, no model
     base = {"action": action, "decision": decision, "rule": rule}
@@ -75,6 +99,9 @@ def govern(action: dict, call, *, policy, ledger, gate, gate_timeout: float | No
         if not gate.await_approval(token, action, timeout=gate_timeout):
             ledger.append({**base, "outcome": "denied_by_human"})
             raise ApprovalDenied(f"{action['tool']}: not approved")
+    elif strict:  # allow path + strict: record intent BEFORE the side effect
+        token = ledger.append({**base, "outcome": "intent"})
+        base = {**base, "token": token}
 
     try:
         result = call()  # only now does the side effect run
@@ -86,7 +113,8 @@ def govern(action: dict, call, *, policy, ledger, gate, gate_timeout: float | No
 
 
 def governed(effect: str = "write", tool: str | None = None, *,
-             policy, ledger, gate, gate_timeout: float | None = None):
+             policy, ledger, gate, gate_timeout: float | None = None,
+             strict_provenance: bool | None = None):
     """Decorator: route every call of a tool function through govern()."""
 
     def deco(fn):
@@ -111,6 +139,7 @@ def governed(effect: str = "write", tool: str | None = None, *,
             return govern(
                 action, lambda: fn(*args, **kwargs),
                 policy=policy, ledger=ledger, gate=gate, gate_timeout=gate_timeout,
+                strict_provenance=strict_provenance,
             )
 
         return wrapper

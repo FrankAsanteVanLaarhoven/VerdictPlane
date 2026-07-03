@@ -58,9 +58,10 @@ on trust. "Validated" = backed by a passing automated test **and** confirmed in 
 
 - **Chain-only verification cannot detect tail truncation** — requires comparison against an
   externally anchored head hash (Merkle / signed checkpoints are roadmap).
-- **Allow-path provenance is written on completion**, not before the side effect (deny and
-  require_human *are* recorded first). A crash mid-execution presents as a detectable tail gap; a
-  strict pre-record mode for audit-critical paths is roadmap.
+- **Allow-path provenance is written on completion** by default (deny and require_human *are*
+  recorded first). A crash mid-execution presents as a detectable tail gap. Audit-critical paths
+  can opt into **strict provenance** (`VERDICTPLANE_STRICT_PROVENANCE=1`) to record an `intent`
+  entry before the allow side effect too, at the cost of a second append per action.
 - **The human gate is a polling, single-reviewer mechanism** — correct and cross-process, but
   human-scale; multi-reviewer quorum, SLAs, and notifications are roadmap.
 - **Headline latency is buffered-durability mode**; a durable-`fsync` benchmark mode is roadmap.

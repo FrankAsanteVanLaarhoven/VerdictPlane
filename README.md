@@ -136,7 +136,9 @@ Details, threat model, and invariants: [ARCHITECTURE.md](ARCHITECTURE.md).
 > `require_human`; on the `allow` hot path the single terminal record is written on
 > completion — so a crash mid-execution presents as a detectable tail gap, never a
 > silently unrecorded action (see [docs/EVIDENCE_APPENDIX.md](docs/EVIDENCE_APPENDIX.md)).
-> A strict mode that pre-records allow intent is on the roadmap for audit-critical paths.
+> For audit-critical paths, opt into **strict provenance**
+> (`VERDICTPLANE_STRICT_PROVENANCE=1`, or `strict_provenance=True` per call) to record an
+> `intent` entry before the allow side effect too, at the cost of a second append per action.
 
 ## Governing an MCP agent
 
