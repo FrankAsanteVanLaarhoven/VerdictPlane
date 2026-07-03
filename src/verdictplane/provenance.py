@@ -137,9 +137,13 @@ class Ledger:
         """A verifiable snapshot of ledger state, for EXTERNAL anchoring.
 
         Anchoring a checkpoint out-of-band lets `verify_extends` later detect tail
-        truncation and rollback — which a self-contained chain walk cannot, because
-        a truncated-but-valid prefix still verifies. Optionally HMAC-signed so the
-        anchor is itself tamper-evident and attributable.
+        truncation *below this point* and rollback — which a self-contained chain
+        walk cannot, because a truncated-but-valid prefix still verifies. Entries
+        appended after a checkpoint are only covered by the next one, so anchor
+        frequently. The optional HMAC gives keyed tamper-evidence to holders of the
+        key (the key must live apart from the ledger writer) — this is integrity,
+        not asymmetric non-repudiation (ed25519 signing is a roadmap item). The
+        Merkle root is a forward commitment reserved for future inclusion proofs.
         """
         hashes = self.entry_hashes()
         cp = {

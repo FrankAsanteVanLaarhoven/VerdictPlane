@@ -79,11 +79,14 @@ This runs on every CI push (`.github/workflows/ci.yml`, final step).
 
 ## Known limitations (stated, not hidden)
 
-- **Chain-only verification cannot see tail truncation on its own** — now closed
-  by `verify_extends()` against a signed `checkpoint()` (head + count + Merkle
-  root) anchored out-of-band (`verdictplane anchor` / `verify-anchor`; HMAC key
-  via `VERDICTPLANE_ANCHOR_KEY`). Privileged deletion of the whole file remains
-  out of scope for a file-backed ledger.
+- **Chain-only verification cannot see tail truncation on its own** — truncation
+  *below the last anchor* and rollback are now caught by `verify_extends()` against
+  an externally held `checkpoint()` (head + count + Merkle root; `verdictplane
+  anchor` / `verify-anchor`). The optional HMAC (`VERDICTPLANE_ANCHOR_KEY`, held
+  apart from the ledger writer) is keyed tamper-evidence, **not** asymmetric
+  non-repudiation; the post-anchor tail is only covered by the next checkpoint, so
+  anchor frequently. Privileged whole-file deletion, ed25519 signing (true
+  non-repudiation), and Merkle inclusion proofs remain out of scope / roadmap.
 - **The gate is a polling, single-reviewer mechanism** — correct and
   cross-process, but human-scale; multi-reviewer quorum, SLAs, and
   notifications are roadmap (enterprise workflow track).

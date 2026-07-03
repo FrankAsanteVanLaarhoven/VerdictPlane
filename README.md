@@ -20,8 +20,9 @@ pre-execution control.**
 - **Default-deny posture.** Unmatched actions require human approval. Timeouts
   deny. A broken advisory component changes nothing.
 - **Provenance by default.** No governed action runs un-recorded; any
-  mutation of history is detected at the exact line, and tail truncation or
-  rollback is caught by verifying against a signed, externally anchored checkpoint.
+  mutation of history is detected at the exact line, and truncation below the last
+  anchor (or rollback) is caught by verifying against an externally held,
+  optionally signed checkpoint.
 
 Measured, not claimed (`make bench`, full method in [docs/BENCHMARK.md](docs/BENCHMARK.md)):
 

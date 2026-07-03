@@ -57,9 +57,11 @@ strict-provenance, anchoring).
 
 ## Known limitations (as documented in the repository)
 
-- **Tail truncation / rollback** is now detected by verifying the ledger against a signed
-  `checkpoint()` anchored out-of-band (`verdictplane anchor` / `verify-anchor`). Privileged deletion
-  of the whole file remains out of scope for a file-backed ledger.
+- **Tail truncation *below the last anchor* / rollback** is now detected by verifying the ledger
+  against an externally held `checkpoint()` (`verdictplane anchor` / `verify-anchor`). The optional
+  HMAC is keyed tamper-evidence (key held apart from the writer), not asymmetric non-repudiation;
+  the post-anchor tail is only covered by the next checkpoint. Privileged whole-file deletion,
+  ed25519 signing, and Merkle inclusion proofs remain out of scope / roadmap.
 - **Allow-path provenance is written on completion** by default (deny and require_human *are*
   recorded first). A crash mid-execution presents as a detectable tail gap. Audit-critical paths
   can opt into **strict provenance** (`VERDICTPLANE_STRICT_PROVENANCE=1`) to record an `intent`

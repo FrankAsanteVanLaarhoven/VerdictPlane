@@ -38,11 +38,16 @@ builds the benchmark; Phase C adds adversarial + compliance surface.
 
 ### Phase A — Enterprise hardening (closes v0.1 limitations)
 
-**T7 · Non-repudiation.** Merkle-ized ledger heads + signed checkpoints + optional external
-anchoring, so tail-truncation and whole-file deletion become detectable (today only mid-history
-mutation is). *Deliverable:* `provenance.checkpoint()` / `verify_against(anchor)`; a `verdictplane
-anchor` CLI. *Acceptance:* truncation and rollback detected in a randomized battery; verify stays
-O(n); enforcement core still passes the import allowlist. *EIGS: 10.*
+**T7 · External anchoring / signed checkpoints.** *(shipped, c9559fc.)* `checkpoint()`
+(head + count + Merkle root, optionally HMAC-signed) + `verify_extends(anchor)` make tail
+truncation *below the last anchor* and rollback to a divergent history detectable against an
+externally held checkpoint — mutations a self-contained chain walk cannot see. CLI: `verdictplane
+anchor` / `verify-anchor`. **Honest scope:** the HMAC gives *keyed tamper-evidence to key-holders*
+(the key must be held separately from the ledger writer), **not** asymmetric non-repudiation; the
+post-anchor tail is only covered by the next checkpoint (anchor frequently); the Merkle root is a
+forward commitment not yet load-bearing. *Documented follow-ups (later increment, off-path, core
+untouched):* **ed25519 signing** for true non-repudiation + **Merkle inclusion proofs** for
+selective auditor disclosure. *EIGS: 10.*
 
 **T8 · Multi-reviewer quorum gate.** k-of-n approval, per-rule quorum, reviewer identity + SLA/expiry,
 non-repudiable approvals. *Deliverable:* `gate` quorum mode (still file-backed, still fail-safe→deny).
@@ -109,7 +114,7 @@ exporter failure never affects enforcement (statically + at runtime); events rou
 | T2 Side-Effect Escape | 30 | any escaped side effect |
 | T1 EAC policy conformance | 15 | — |
 | T3 Agentic red-team | 15 | any attack reaches a sink |
-| T7 Non-repudiation & tamper | 10 | any undetected tamper |
+| T7 External anchoring & tamper | 10 | any undetected tamper |
 | T4 MCP conformance | 8 | any un-governed tool path |
 | T5 Compliance coverage | 8 | — |
 | T8 Multi-reviewer governance | 7 | partial approval executes |
@@ -153,4 +158,5 @@ advisory model better* — the advisory stays strictly off-path and out of scope
    measuring pre-execution action governance* (a category claim we can defend by construction), and
    substantiate empirical-superiority claims only after external reproduction.
 
-**Current milestone:** Phase A · T7 (non-repudiation) → T8 (quorum) → T6 (durability perf matrix).
+**Current milestone:** Phase A · T7 (external anchoring — **shipped**) → T8 (quorum) → T6 (durability
+perf matrix). Follow-ups parked: ed25519 signing + Merkle inclusion proofs (post-alpha).
