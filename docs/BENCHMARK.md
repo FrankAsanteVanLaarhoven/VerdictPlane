@@ -3,8 +3,8 @@
 Produced by `make bench` (bench/run_bench.py) from live measurement.
 Machine-readable source: `artifacts/stats.json` (regenerated, not committed).
 
-- **Commit:** `b8ad473dac7c610e19aa1a8d5095c60ca76b3b71`
-- **Captured:** 2026-07-03T00:43:18Z
+- **Commit:** `8d8ec831c59e65af873d4d487a2a1385c6429c70`
+- **Captured:** 2026-07-03T00:44:29Z
 - **Host:** Intel(R) Core(TM) i7-14700K · Python 3.13.13 · Linux-6.8.0-111-generic-x86_64-with-glibc2.35
 - **Ledger:** filesystem `ext4`, fsync=False
 - **Advisory:** off (forced); enforcement never imports advisory regardless
@@ -15,39 +15,39 @@ Machine-readable source: `artifacts/stats.json` (regenerated, not committed).
 
 | Target | Result |
 | --- | --- |
-| Allow-path p99 < 1 ms (every run) | PASS — worst run 18.93 µs |
-| Throughput > 10k governed actions/s (worst run) | PASS — worst run 61658/s |
+| Allow-path p99 < 1 ms (every run) | PASS — worst run 19.3 µs |
+| Throughput > 10k governed actions/s (worst run) | PASS — worst run 59545/s |
 | Tamper detection 100% at exact index | PASS — 200/200 |
 | Zero provenance gaps + chain verifies | PASS — 0 gaps / 200 calls |
 | Fail-safe with advisory forced broken | PASS |
-| Reproducibility (allow p99 spread <= 10%) | PASS — spread 3.8% |
+| Reproducibility (allow p99 spread <= 10%) | PASS — spread 0.7% |
 
 ## Enforcement latency (median run, µs)
 
 | Path | p50 | p95 | p99 |
 | --- | --- | --- | --- |
 | raw call (baseline) | 0.03 | 0.05 | 0.05 |
-| governed allow | 16.1 | 17.47 | 18.63 |
-| governed deny | 18.59 | 20.17 | 21.43 |
-| require_human (auto-resolved gate) | 88.43 | 108.42 | 208.19 |
-| ledger append | 10.57 | 11.55 | 12.69 |
+| governed allow | 16.52 | 17.83 | 19.25 |
+| governed deny | 18.56 | 20.29 | 21.94 |
+| require_human (auto-resolved gate) | 90.68 | 108.85 | 211.99 |
+| ledger append | 10.93 | 11.79 | 12.87 |
 
-Full-chain verify: 31000 entries in 0.1535 s.
+Full-chain verify: 31000 entries in 0.1663 s.
 
 ## Stability across runs
 
-- allow p99 per run (µs): [18.93, 18.41, 18.23, 18.66, 18.63] — spread 3.8%
-- throughput per run (ops/s): [61803, 62179, 62037, 61658, 62157] — spread 0.8%
+- allow p99 per run (µs): [19.28, 19.17, 19.24, 19.25, 19.3] — spread 0.7%
+- throughput per run (ops/s): [59545, 59986, 60270, 59881, 60294] — spread 1.2%
 
 ## Real workloads under load (P4 wrappers, workloads.yaml policy)
 
 | Path | p50 | p95 | p99 |
 | --- | --- | --- | --- |
-| DriftGuard promote (Staging, allow) | 25.16 | 26.99 | 30.13 |
-| DriftGuard promote (Production, gated+auto-resolve) | 111.0 | 137.14 | 245.08 |
-| Sentinel proposal (recorded) | 23.91 | 25.64 | 28.07 |
+| DriftGuard promote (Staging, allow) | 26.65 | 28.99 | 40.07 |
+| DriftGuard promote (Production, gated+auto-resolve) | 112.31 | 137.22 | 248.22 |
+| Sentinel proposal (recorded) | 24.36 | 26.2 | 28.16 |
 
-- Staging-promote throughput: 38529 ops/s
+- Staging-promote throughput: 37754 ops/s
 - Chain verifies after load: True
 
 ## Fail-safe detail
