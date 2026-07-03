@@ -1,0 +1,26 @@
+# Policy for the first two governed workloads (P4).
+# First-match wins; anything unmatched falls to the safe default.
+
+default: require_human
+
+rules:
+  # DriftGuard — fail-closed: a candidate that failed the baseline gate can
+  # never ship, no matter who asks. Deterministic deny, no human needed.
+  - match: { tool: model.promote, args.baseline.passed: false }
+    decision: deny
+
+  # Production promotion always needs a human, even with a passing gate.
+  - match: { tool: model.promote, args.stage: Production, args.baseline.passed: true }
+    decision: require_human
+
+  # Staging promotions with a passing gate flow unattended (canary-style).
+  - match: { tool: model.promote, args.stage: Staging, args.baseline.passed: true }
+    decision: allow
+
+  # Sentinel — recording an assistive proposal is safe and always audited.
+  - match: { tool: incident.propose, effect: propose }
+    decision: allow
+
+  # Executing a proposed rollback is a real side effect: human required.
+  - match: { tool: incident.rollback }
+    decision: require_human
