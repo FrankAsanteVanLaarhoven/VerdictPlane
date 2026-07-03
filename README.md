@@ -35,9 +35,38 @@ Every claim above has a live-run artefact in [docs/EVIDENCE.md](docs/EVIDENCE.md
 machine specs, benchmark conditions, named proofs, and reproduction commands are
 in [docs/EVIDENCE_APPENDIX.md](docs/EVIDENCE_APPENDIX.md).
 
-**Status:** P0–P7 acceptance criteria have passed. v0.1.0 is ready for OSS
-release and controlled pilot deployments, subject to the reproduction
-conditions documented in the evidence appendix.
+**Status:** P0–P7 acceptance criteria have passed. v0.1.0 is published on PyPI
+(`pip install verdictplane`) and ready for controlled pilot deployments, subject
+to the reproduction conditions documented in the evidence appendix.
+
+## How VerdictPlane compares
+
+VerdictPlane is a **deterministic, in-path control plane** for consequential AI
+actions: it sits between an agent and the systems it acts on and enforces policy
+*before* execution. That puts it in a different category from three adjacent classes
+of tools it is often confused with.
+
+| | VerdictPlane | Observability / AIOps<br>(Datadog, Dynatrace, Dash0+Agent0) | Model guardrails<br>(NeMo Guardrails, Llama Guard) | Policy engines<br>(OPA / Cedar) |
+| --- | --- | --- | --- | --- |
+| **When it acts** | Pre-execution, in-path | Post-hoc / during | Pre/inline, on content | Pre-execution, in-path |
+| **Decision basis** | Deterministic policy | Model-assisted analysis | A model classifies risk | Deterministic policy |
+| **Model in the decision** | Never (statically proven) | Yes | Yes — it *is* the mechanism | No |
+| **Provenance** | Hash-chained tamper-evident ledger | Traces / logs | Usually none | External audit log |
+| **Human approval** | First-class, blocking, default-deny | Advisory | Rare | Not built in |
+| **Zero-egress / air-gap** | Design goal (static + kernel proof) | Cloud-hosted | Often calls a hosted model | Self-hostable |
+| **Shaped for agent actions** | Yes (tool, effect, args, agent) | Generic infra | Content, not actions | Generic policy |
+
+The nearest neighbour is a **policy engine** (OPA/Cedar) — both are deterministic and
+pre-execution. VerdictPlane's difference is that it is purpose-built for *agent actions*:
+it bundles the decision with a tamper-evident provenance ledger and a blocking human
+gate, ships with socket- and kernel-level zero-egress proofs, and is validated on real
+workloads (model promotion, incident rollback). It is **not** a model guardrail — no
+model ever sits in the decision (statically enforced), so verdicts are reproducible and
+auditable rather than probabilistic.
+
+**Use it *with* observability, not instead of it.** Feed VerdictPlane's ledger events
+into your existing platform for correlation and investigation; VerdictPlane's job is to
+make non-compliant actions *unable to execute* and to leave an auditor-grade trail.
 
 ## Five-minute quickstart
 
@@ -47,8 +76,13 @@ cd VerdictPlane
 make setup && make test
 ```
 
-Or as a library (dist name `verdictplane`, import name `verdictplane`;
-PyPI release pending — install from source until then):
+Or as a library — published on PyPI (dist and import name `verdictplane`):
+
+```bash
+pip install verdictplane
+```
+
+Or track `main` from source:
 
 ```bash
 pip install git+https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git
@@ -84,10 +118,11 @@ agent / model / workflow
 |   1. build Action{tool, effect, args, agent}      |
 |   2. policy.evaluate(action) -> allow | deny |    |
 |      require_human      (deterministic, no model) |
-|   3. ledger.append(record)  (hash-chained, BEFORE |
-|      any side effect)                             |
+|   3. deny / require_human: append the decision    |
+|      (hash-chained) BEFORE any side effect        |
 |   4. require_human -> gate blocks for a reviewer  |
-|   5. execute OR refuse; append the outcome        |
+|   5. allow: execute, then append the terminal     |
+|      outcome (the decision is always pre-exec)    |
 +--------------------------------------------------+
         |                        ^
         v                        | optional, OFF the hot path, fail-safe
@@ -95,6 +130,13 @@ agent / model / workflow
 ```
 
 Details, threat model, and invariants: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+> **Provenance ordering, precisely.** The policy *decision* is always made before
+> execution. The *record* is written before the side effect for `deny` and
+> `require_human`; on the `allow` hot path the single terminal record is written on
+> completion — so a crash mid-execution presents as a detectable tail gap, never a
+> silently unrecorded action (see [docs/EVIDENCE_APPENDIX.md](docs/EVIDENCE_APPENDIX.md)).
+> A strict mode that pre-records allow intent is on the roadmap for audit-critical paths.
 
 ## Governing an MCP agent
 
@@ -174,7 +216,9 @@ workloads/        governed DriftGuard promotion, Sentinel rollback
 bench/            make bench -> artifacts/stats.json + docs/BENCHMARK.md
 tests/            180 tests: conformance, tamper, gating, zero-egress
 deploy/           Dockerfile, network-less sidecar compose, demo agent
-docs/             EVIDENCE.md (audit pack), BENCHMARK.md (measured numbers)
+docs/             EVIDENCE.md (audit pack), BENCHMARK.md (measured numbers),
+                  EVIDENCE_APPENDIX.md (conditions + reproduction),
+                  READINESS_SUMMARY.md (one-page reviewer brief)
 ```
 
 ## Contributing
