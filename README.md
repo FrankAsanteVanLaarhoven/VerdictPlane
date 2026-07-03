@@ -228,7 +228,8 @@ tests/            201 tests: conformance, tamper, gating, zero-egress, strict-pr
 deploy/           Dockerfile, network-less sidecar compose, demo agent
 docs/             EVIDENCE.md (audit pack), BENCHMARK.md (measured numbers),
                   EVIDENCE_APPENDIX.md (conditions + reproduction),
-                  READINESS_SUMMARY.md (one-page reviewer brief)
+                  READINESS_SUMMARY.md (one-page reviewer brief),
+                  METRICS.md (metric -> failure mapping), REVIEW_GATE.md (pre-final checklist)
 ```
 
 ## Contributing
