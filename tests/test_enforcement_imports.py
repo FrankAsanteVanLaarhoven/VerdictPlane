@@ -74,3 +74,19 @@ def test_no_network_or_model_clients(module):
 
 def test_enforcement_set_is_not_empty():
     assert {"provenance.py", "policy.py", "types.py"} <= set(enforcement_modules())
+
+
+@pytest.mark.parametrize("module", enforcement_modules())
+def test_enforcement_never_imports_advisory_or_cli(module):
+    """The intra-package allowlist must not smuggle the off-path modules in."""
+    with open(os.path.join(SRC, module)) as f:
+        tree = ast.parse(f.read())
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            referenced = [alias.name for alias in node.names]
+            if isinstance(node, ast.ImportFrom) and node.module:
+                referenced.append(node.module)
+            for name in referenced:
+                assert "advisory" not in name and name != "cli", (
+                    f"{module} imports off-hot-path module {name!r}"
+                )
