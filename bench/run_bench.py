@@ -297,7 +297,11 @@ def main():
     ap.add_argument("--max-spread-pct", type=float,
                     default=float(os.environ.get("VERDICTPLANE_BENCH_MAX_SPREAD", "10")),
                     help="reproducibility target for allow-p99 spread across runs "
-                         "(default 10; relax on noisy shared CI runners)")
+                         "(default 10; a dedicated-hardware claim)")
+    ap.add_argument("--spread-report-only", action="store_true",
+                    help="record the spread against the target but do not gate the "
+                         "exit code on it (for shared CI runners, where run-to-run "
+                         "spread measures the runner, not the system)")
     ap.add_argument("--out", default=os.path.join(ROOT, "artifacts", "stats.json"))
     args = ap.parse_args()
 
@@ -340,6 +344,7 @@ def main():
                 "runs": args.runs,
                 "allow_calls_per_run": args.n,
                 "spread_target_pct": args.max_spread_pct,
+                "spread_enforced": not args.spread_report_only,
             },
             "latency": {**median_run, "note": "median run shown; per-run below"},
             "stability": {
@@ -368,7 +373,9 @@ def main():
         write_report(stats)
         print(json.dumps(stats["targets"], indent=2))
         print(f"wrote {args.out} and docs/BENCHMARK.md")
-        return 0 if all(stats["targets"].values()) else 1
+        gating = {k: v for k, v in stats["targets"].items()
+                  if k != "reproducible_within_spread_target" or not args.spread_report_only}
+        return 0 if all(gating.values()) else 1
     finally:
         shutil.rmtree(top, ignore_errors=True)
 
@@ -401,7 +408,7 @@ Machine-readable source: `artifacts/stats.json` (regenerated, not committed).
 | Tamper detection 100% at exact index | {'PASS' if t['tamper_detection_100pct'] else 'FAIL'} — {s['tamper_detection']['detected']}/{s['tamper_detection']['trials']} |
 | Zero provenance gaps + chain verifies | {'PASS' if t['zero_provenance_gaps'] else 'FAIL'} — {s['provenance_completeness']['gaps']} gaps / {s['provenance_completeness']['calls']} calls |
 | Fail-safe with advisory forced broken | {'PASS' if t['fail_safe_verified'] else 'FAIL'} |
-| Reproducibility (allow p99 spread <= {s['meta']['spread_target_pct']:g}%) | {'PASS' if t['reproducible_within_spread_target'] else 'FAIL'} — spread {st['allow_p99_spread_pct']}% |
+| Reproducibility (allow p99 spread <= {s['meta']['spread_target_pct']:g}%{'' if s['meta']['spread_enforced'] else '; informational on shared runners'}) | {('PASS' if t['reproducible_within_spread_target'] else 'FAIL') if s['meta']['spread_enforced'] else ('PASS' if t['reproducible_within_spread_target'] else 'INFO')} — spread {st['allow_p99_spread_pct']}% |
 
 ## Enforcement latency (median run, µs)
 

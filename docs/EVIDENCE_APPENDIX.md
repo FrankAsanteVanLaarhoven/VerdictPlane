@@ -35,10 +35,13 @@ external auditor can reproduce them. Companion documents:
   published alongside (`stability` section of `artifacts/stats.json`).
 - **Advisory:** `VERDICTPLANE_ADVISORY=off` for all measurements; separately
   forced into error mode for the fail-safe assertion.
-- **Reproducibility gate:** allow-p99 spread ≤ 10% across runs locally;
-  relaxed to 30% on shared CI runners via an explicit
-  `--max-spread-pct` flag (runner noise, not system property). Absolute
-  targets are never relaxed.
+- **Reproducibility gate:** allow-p99 spread ≤ 10% across runs is a
+  **dedicated-hardware claim**, gated locally. On shared CI runners the
+  spread is recorded but informational (`--spread-report-only`): a single
+  noisy-neighbor run can spike one p99 sample, which measures the runner,
+  not the system. Absolute targets are never relaxed anywhere — observed
+  shared-runner worsts (GitHub hosted, 2026-07): p99 ≈ 117 µs, throughput
+  ≈ 12k/s — both still comfortably inside the absolute targets.
 - **What the numbers mean:** `raw call` baseline is ~0.03 µs, so the
   ~16–19 µs governed-allow figure is effectively the full cost of governance
   (validation + policy + hash-chained append). The `require_human`
