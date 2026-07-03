@@ -15,6 +15,7 @@ independent runs (fresh ledger each), reporting per-run values and spread.
 """
 
 import argparse
+import glob
 import json
 import os
 import platform
@@ -103,6 +104,22 @@ def cpu_model():
     except OSError:
         pass
     return platform.processor() or "unknown"
+
+
+def cpu_governors():
+    """Distinct CPU-frequency governors in effect (e.g. ['performance'] when pinned).
+
+    Frequency scaling is the dominant p99-spread source; recording the governor lets a
+    reader tell a tight dedicated-hardware spread from a noisy unpinned one.
+    """
+    govs = set()
+    for p in glob.glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_governor"):
+        try:
+            with open(p) as f:
+                govs.add(f.read().strip())
+        except OSError:
+            pass
+    return sorted(govs) or ["unknown"]
 
 
 def one_run(workdir, n_allow, n_gated):
@@ -292,6 +309,11 @@ def spread_pct(values):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=5)
+    ap.add_argument("--warmup-runs", type=int,
+                    default=int(os.environ.get("VERDICTPLANE_BENCH_WARMUP_RUNS", "1")),
+                    help="discarded warm-up runs before measurement — brings CPU/allocator/"
+                         "cache to steady state so a cold first run never enters the "
+                         "latency or spread statistics (default 1)")
     ap.add_argument("--n", type=int, default=20000, help="allow-path calls per run")
     ap.add_argument("--n-gated", type=int, default=2000)
     ap.add_argument("--max-spread-pct", type=float,
@@ -307,6 +329,15 @@ def main():
 
     top = tempfile.mkdtemp(prefix="verdictplane-bench-")
     try:
+        # Discarded warm-up runs: steady-state CPU/allocator/page-cache before measuring,
+        # so a cold first run never skews the reported latency or the spread target.
+        for w in range(args.warmup_runs):
+            d = os.path.join(top, f"warmup{w}")
+            os.makedirs(d)
+            wr = one_run(d, args.n, args.n_gated)
+            print(f"warmup {w + 1}/{args.warmup_runs} (discarded): "
+                  f"allow p99={wr['allow_path']['p99_us']}us")
+
         runs = []
         for r in range(args.runs):
             d = os.path.join(top, f"run{r}")
@@ -331,6 +362,7 @@ def main():
         if subprocess.run(["git", "status", "--porcelain"], cwd=ROOT,
                           capture_output=True, text=True).stdout.strip():
             commit += " (working tree DIRTY at capture time)"
+        governors = cpu_governors()
         stats = {
             "meta": {
                 "commit": commit,
@@ -338,9 +370,12 @@ def main():
                 "python": platform.python_version(),
                 "platform": platform.platform(),
                 "cpu": cpu_model(),
+                "cpu_governors": governors,
+                "cpu_governor_pinned": governors == ["performance"],
                 "ledger_filesystem": fs_type(top),
                 "fsync": False,
                 "advisory_env": "off (forced); enforcement never imports advisory regardless",
+                "warmup_runs_discarded": args.warmup_runs,
                 "runs": args.runs,
                 "allow_calls_per_run": args.n,
                 "spread_target_pct": args.max_spread_pct,
@@ -394,9 +429,10 @@ Machine-readable source: `artifacts/stats.json` (regenerated, not committed).
 - **Commit:** `{s['meta']['commit']}`
 - **Captured:** {s['meta']['captured_utc']}
 - **Host:** {s['meta']['cpu']} · Python {s['meta']['python']} · {s['meta']['platform']}
+- **CPU governor:** {', '.join(s['meta']['cpu_governors'])} — {'pinned to performance (tight spread expected)' if s['meta']['cpu_governor_pinned'] else 'not pinned to performance; frequency scaling widens p99 spread — pin the governor for a dedicated-hardware spread claim'}
 - **Ledger:** filesystem `{s['meta']['ledger_filesystem']}`, fsync={s['meta']['fsync']}
 - **Advisory:** {s['meta']['advisory_env']}
-- **Method:** {s['meta']['runs']} independent runs x {s['meta']['allow_calls_per_run']} allow-path calls
+- **Method:** {s['meta']['warmup_runs_discarded']} discarded warm-up run(s), then {s['meta']['runs']} measured runs x {s['meta']['allow_calls_per_run']} allow-path calls
   (fresh ledger per run, 500-call warmup before throughput window); median run shown.
 
 ## Targets scoreboard
