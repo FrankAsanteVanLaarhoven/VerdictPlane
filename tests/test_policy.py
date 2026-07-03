@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from keystone.policy import (
+from verdictplane.policy import (
     ALLOW,
     DENY,
     REQUIRE_HUMAN,

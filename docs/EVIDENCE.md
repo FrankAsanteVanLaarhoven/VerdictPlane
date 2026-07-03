@@ -1,10 +1,10 @@
-# Keystone — Evidence Pack (P0–P4)
+# VerdictPlane — Evidence Pack (P0–P4)
 
 Assembled from live runs by `make evidence` (scripts/build_evidence.py).
 Nothing below is hand-written output.
 
 - **Commit:** `5b35f524fa868d1241b1a2282dc0d0b4d98ca5c7`
-- **Repo:** https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs
+- **Repo:** https://github.com/FrankAsanteVanLaarhoven/VerdictPlane
 - **Reproduce:** `make setup && make test && make evidence`
 
 ## Evidence Matrix
@@ -127,17 +127,17 @@ $ # governed_promote('7', gate_passed) is now BLOCKED in another process
 $ test -f registry.json && echo exists || echo absent
 absent   <- side effect has NOT run
 
-$ keystone pending
+$ verdictplane pending
 90a90c1b165a7798  model.promote  effect=promote  agent=driftguard  age=0s
   args: {"baseline": {"baseline_macro_f1": 0.85, "candidate_macro_f1": 0.91, "margin": 0.02, "passed": true, "reason": null}, "stage": "Production", "version": "7"}
 
-$ keystone approve 90a90c1b165a --by frank
+$ verdictplane approve 90a90c1b165a --by frank
 approved 90a90c1b165a7798 (model.promote) by frank
 
 $ cat registry.json
 {"production_alias": "7"}   <- side effect ran ONLY after approval
 
-$ keystone deny 9e1608f9d211 --by frank
+$ verdictplane deny 9e1608f9d211 --by frank
 denied 9e1608f9d211502f (model.promote) by frank
 
 $ cat registry.json
@@ -146,7 +146,7 @@ $ cat registry.json
 # governed_promote('9', gate_FAILED) -> PolicyDenied: model.promote: denied by policy
 # (deterministic policy deny; no approval was ever requested)
 
-$ keystone approve b5d4c3d09ca2 --by frank   # Sentinel rollback
+$ verdictplane approve b5d4c3d09ca2 --by frank   # Sentinel rollback
 approved b5d4c3d09ca2a733 (incident.rollback) by frank
 
 # rollback executed with incident payload: {'service': 'productcatalog', 'change': 'deploy v2.3.1', 'detect_t': 34}
@@ -155,7 +155,7 @@ approved b5d4c3d09ca2a733 (incident.rollback) by frank
 
 ## E5 — Resulting provenance ledger
 
-`keystone log`:
+`verdictplane log`:
 
 ```
 90a90c1b165a7798  pending          require_human  model.promote  agent=driftguard
@@ -168,7 +168,7 @@ b5d4c3d09ca2a733  pending          require_human  incident.rollback  agent=senti
 bd55c8d7c042469d  executed         require_human  incident.rollback  agent=sentinel
 ```
 
-`keystone verify`:
+`verdictplane verify`:
 
 ```
 ledger ok (8 entries, head=bd55c8d7c042469d)
@@ -185,7 +185,7 @@ Raw hash-chained records (first 2 of 8):
 ## E6 — Live forgery detection
 
 ```
-$ keystone verify   # after forging line 3's outcome
+$ verdictplane verify   # after forging line 3's outcome
 LEDGER TAMPERED at line 3
 exit code: 1
 ```

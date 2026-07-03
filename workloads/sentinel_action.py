@@ -1,11 +1,11 @@
-"""Sentinel incident actions, governed by Keystone.
+"""Sentinel incident actions, governed by VerdictPlane.
 
 Adapts the real Sentinel engine (sentinel/src/sentinel/incident_agent.py):
   - ``investigate(store) -> (metrics, report)`` — detects an SLO breach,
     localizes the culprit service, finds the causal change, and PROPOSES a
     rollback, assistive-only: "[AWAIT HUMAN APPROVAL]" (incident_agent.py:40).
 
-Sentinel already proposes-and-never-acts. Keystone makes that promise
+Sentinel already proposes-and-never-acts. VerdictPlane makes that promise
 enforceable and auditable:
   - the proposal itself is recorded in the tamper-evident ledger
     (content-addressed by the report's SHA-256),
@@ -15,11 +15,11 @@ enforceable and auditable:
 
 import hashlib
 
-from keystone.interceptor import govern
+from verdictplane.interceptor import govern
 
 
 def proposal_action(metrics: dict, report: str, agent: str = "sentinel") -> dict:
-    """Map Sentinel's investigate() output onto a recordable Keystone action."""
+    """Map Sentinel's investigate() output onto a recordable VerdictPlane action."""
     return {
         "tool": "incident.propose",
         "effect": "propose",

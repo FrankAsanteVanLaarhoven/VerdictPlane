@@ -1,4 +1,4 @@
-"""keystone — reviewer CLI: list pending approvals, approve/deny, verify the
+"""verdictplane — reviewer CLI: list pending approvals, approve/deny, verify the
 ledger, query provenance. Works across processes: an interceptor blocked in
 another process resolves the moment you approve/deny here.
 
@@ -20,9 +20,9 @@ from .provenance import Ledger
 def _resolve_token(gate: Gate, prefix: str) -> str:
     matches = [p["token"] for p in gate.list_pending() if p["token"].startswith(prefix)]
     if not matches:
-        raise SystemExit(f"keystone: no pending approval matching {prefix!r}")
+        raise SystemExit(f"verdictplane: no pending approval matching {prefix!r}")
     if len(matches) > 1:
-        raise SystemExit(f"keystone: token prefix {prefix!r} is ambiguous ({len(matches)} matches)")
+        raise SystemExit(f"verdictplane: token prefix {prefix!r} is ambiguous ({len(matches)} matches)")
     return matches[0]
 
 
@@ -89,14 +89,14 @@ def _cmd_log(args, ledger: Ledger) -> int:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="keystone", description=__doc__)
-    parser.add_argument("--ledger", default=os.environ.get("KEYSTONE_LEDGER", "artifacts/ledger.jsonl"))
-    parser.add_argument("--gate", default=os.environ.get("KEYSTONE_GATE", "artifacts/gate"))
+    parser = argparse.ArgumentParser(prog="verdictplane", description=__doc__)
+    parser.add_argument("--ledger", default=os.environ.get("VERDICTPLANE_LEDGER", "artifacts/ledger.jsonl"))
+    parser.add_argument("--gate", default=os.environ.get("VERDICTPLANE_GATE", "artifacts/gate"))
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_pending = sub.add_parser("pending", help="list pending approvals")
     p_pending.add_argument("--advise", action="store_true",
-                           help="add model risk summaries (KEYSTONE_ADVISORY backend; fail-safe)")
+                           help="add model risk summaries (VERDICTPLANE_ADVISORY backend; fail-safe)")
     for name, help_text in (("approve", "approve a pending action"), ("deny", "deny a pending action")):
         p = sub.add_parser(name, help=help_text)
         p.add_argument("token", help="gate token or unique prefix")

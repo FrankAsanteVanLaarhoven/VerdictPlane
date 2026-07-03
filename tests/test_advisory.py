@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from keystone import advisory
+from verdictplane import advisory
 
 ACTION = {"tool": "email.send", "effect": "write", "args": {"to": "x@y.z"}, "agent": "a"}
 
@@ -26,23 +26,23 @@ def cache(tmp_path):
 
 
 def test_off_by_default(monkeypatch, cache):
-    monkeypatch.delenv("KEYSTONE_ADVISORY", raising=False)
+    monkeypatch.delenv("VERDICTPLANE_ADVISORY", raising=False)
     assert advisory.risk_summary(ACTION, cache_path=cache) is None
 
 
 def test_unknown_backend_is_off(monkeypatch, cache):
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "quantum")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "quantum")
     assert advisory.risk_summary(ACTION, cache_path=cache) is None
 
 
 def test_fable5_without_api_key_is_none(monkeypatch, cache):
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "fable5")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "fable5")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     assert advisory.risk_summary(ACTION, cache_path=cache) is None
 
 
 def test_network_error_is_fail_safe(monkeypatch, cache):
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "fable5")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "fable5")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
 
     def boom(*a, **k):
@@ -53,7 +53,7 @@ def test_network_error_is_fail_safe(monkeypatch, cache):
 
 
 def test_fable5_success_and_cache(monkeypatch, cache):
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "fable5")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "fable5")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     calls = []
 
@@ -78,7 +78,7 @@ def test_fable5_success_and_cache(monkeypatch, cache):
 
 
 def test_fable5_refusal_is_none(monkeypatch, cache):
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "fable5")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "fable5")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     monkeypatch.setattr(
         advisory.urllib.request, "urlopen",
@@ -90,7 +90,7 @@ def test_fable5_refusal_is_none(monkeypatch, cache):
 
 
 def test_local_backend_via_ollama(monkeypatch, cache):
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "local")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "local")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
     def fake_urlopen(req, timeout=None):

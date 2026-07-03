@@ -7,10 +7,10 @@ import time
 
 import pytest
 
-from keystone.cli import main
-from keystone.gate import Gate
-from keystone.interceptor import ApprovalDenied, govern
-from keystone.provenance import Ledger
+from verdictplane.cli import main
+from verdictplane.gate import Gate
+from verdictplane.interceptor import ApprovalDenied, govern
+from verdictplane.provenance import Ledger
 
 POLICY = {"default": "require_human", "rules": [{"match": {"effect": "read"}, "decision": "allow"}]}
 
@@ -134,7 +134,7 @@ def test_cli_log_filters(paths, env, capsys):
 
 def test_pending_without_advisory_backend_still_reviews(paths, env, capsys, monkeypatch):
     """--advise with no backend configured degrades to a note, never an error."""
-    monkeypatch.setenv("KEYSTONE_ADVISORY", "off")
+    monkeypatch.setenv("VERDICTPLANE_ADVISORY", "off")
     env["gate"].submit("c" * 64, {"tool": "email.send", "effect": "write", "args": {}, "agent": "x"})
     assert run_cli(paths, "pending", "--advise") == 0
     out = capsys.readouterr().out

@@ -1,4 +1,4 @@
-"""Keystone: in-path, zero-egress control plane for AI actions."""
+"""VerdictPlane: in-path, zero-egress control plane for AI actions."""
 
 from .gate import Gate
 from .interceptor import (

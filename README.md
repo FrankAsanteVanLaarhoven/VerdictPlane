@@ -1,11 +1,16 @@
-# Keystone
+# VerdictPlane
 
-[![ci](https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs/actions/workflows/ci.yml/badge.svg)](https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs/actions/workflows/ci.yml)
+[![ci](https://github.com/FrankAsanteVanLaarhoven/VerdictPlane/actions/workflows/ci.yml/badge.svg)](https://github.com/FrankAsanteVanLaarhoven/VerdictPlane/actions/workflows/ci.yml)
 
-**The in-path control plane for AI actions.** Every consequential thing your
-agents and models do — a tool call, a model promotion, a proposed rollback —
-is **recorded** in a tamper-evident ledger, **checked** against declarative
-policy *before* it commits, and **gated** by a human when it matters.
+**VerdictPlane is a deterministic, zero-egress control plane for consequential
+AI actions.** It evaluates every action against declarative policy *before*
+execution, records tamper-evident provenance in a hash-chained ledger, and
+places high-risk actions behind mandatory human approval — without placing any
+model in the enforcement path.
+
+Post-hoc governance observes actions after the fact. VerdictPlane's claim is
+different: **a governed action physically cannot execute without deterministic
+pre-execution control.**
 
 - **Deterministic enforcement.** The decision path is pure code: a dict match,
   one SHA-256, a file append. No model is ever consulted to decide.
@@ -26,21 +31,27 @@ Measured, not claimed (`make bench`, full method in [docs/BENCHMARK.md](docs/BEN
 | Tamper detection (randomized trials) | **200/200, exact line** | 100% |
 | Provenance gaps under mixed load | **0** | 0 |
 
-Every claim above has a live-run artefact in [docs/EVIDENCE.md](docs/EVIDENCE.md).
+Every claim above has a live-run artefact in [docs/EVIDENCE.md](docs/EVIDENCE.md);
+machine specs, benchmark conditions, named proofs, and reproduction commands are
+in [docs/EVIDENCE_APPENDIX.md](docs/EVIDENCE_APPENDIX.md).
+
+**Status:** P0–P7 acceptance criteria have passed. v0.1.0 is ready for OSS
+release and controlled pilot deployments, subject to the reproduction
+conditions documented in the evidence appendix.
 
 ## Five-minute quickstart
 
 ```bash
-git clone https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs.git
-cd Keystone-AIOPs
+git clone https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git
+cd VerdictPlane
 make setup && make test
 ```
 
-Or as a library (dist name `keystone-aiops`, import name `keystone`;
+Or as a library (dist name `verdictplane`, import name `verdictplane`;
 PyPI release pending — install from source until then):
 
 ```bash
-pip install git+https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs.git
+pip install git+https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git
 ```
 
 Terminal 1 — run a governed tool call (it blocks on the gate):
@@ -52,10 +63,10 @@ PYTHONPATH=. .venv/bin/python examples/quickstart.py
 Terminal 2 — you are the human in the loop:
 
 ```bash
-.venv/bin/keystone pending            # see what's waiting, and why
-.venv/bin/keystone approve <token>    # or: keystone deny <token>
-.venv/bin/keystone log                # the tamper-evident audit trail
-.venv/bin/keystone verify             # walk the hash chain
+.venv/bin/verdictplane pending            # see what's waiting, and why
+.venv/bin/verdictplane approve <token>    # or: verdictplane deny <token>
+.venv/bin/verdictplane log                # the tamper-evident audit trail
+.venv/bin/verdictplane verify             # walk the hash chain
 ```
 
 That's the whole product: the `send_email` call in terminal 1 physically
@@ -91,8 +102,8 @@ Wrap whatever dispatches your agent's tool calls; the agent keeps only the
 governed handle:
 
 ```python
-from keystone import Gate, Ledger, load_policy
-from keystone.mcp import governed_dispatch
+from verdictplane import Gate, Ledger, load_policy
+from verdictplane.mcp import governed_dispatch
 
 call_tool = governed_dispatch(
     dispatch,                                  # your existing MCP dispatch fn
@@ -129,7 +140,7 @@ in [`policies/`](policies/).
 
 ## Real workloads, day one
 
-Two production-shaped systems already flow through Keystone — an MLflow model
+Two production-shaped systems already flow through VerdictPlane — an MLflow model
 promotion (fail-closed accuracy gate, human-gated production alias) and an
 incident-response rollback (proposal recorded, execution gated). Interfaces,
 policies, and measured overhead: [CASE_STUDY.md](CASE_STUDY.md).
@@ -148,15 +159,15 @@ through a shared volume. `make demo` runs the same session locally.
 ## Optional advisory (never in the decision)
 
 Reviewers can opt into model-written risk summaries next to each pending
-action: `KEYSTONE_ADVISORY=fable5` (hosted frontier model) or
-`KEYSTONE_ADVISORY=local` (Ollama on your own GPU — fully air-gapped). The
+action: `VERDICTPLANE_ADVISORY=fable5` (hosted frontier model) or
+`VERDICTPLANE_ADVISORY=local` (Ollama on your own GPU — fully air-gapped). The
 enforcement path cannot even import the advisory module (statically tested),
 and every advisory failure degrades to "no summary", never to a decision.
 
 ## Repository map
 
 ```
-src/keystone/     enforcement core: types, provenance, policy, interceptor,
+src/verdictplane/     enforcement core: types, provenance, policy, interceptor,
                   mcp, gate  (+ off-path: cli, advisory)
 policies/         example + workload policies
 workloads/        governed DriftGuard promotion, Sentinel rollback

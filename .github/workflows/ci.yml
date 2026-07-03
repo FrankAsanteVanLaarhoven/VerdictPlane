@@ -33,10 +33,10 @@ jobs:
 
       # Absolute targets (p99 < 1 ms, > 10k/s, tamper 100%, 0 gaps, fail-safe)
       # are enforced as-is; only the run-to-run spread target is relaxed to 30%
-      # because shared-runner noise is a property of the runner, not Keystone.
+      # because shared-runner noise is a property of the runner, not VerdictPlane.
       - name: Benchmark targets
         run: |
-          PYTHONPATH= KEYSTONE_ADVISORY=off .venv/bin/python bench/run_bench.py \
+          PYTHONPATH= VERDICTPLANE_ADVISORY=off .venv/bin/python bench/run_bench.py \
             --runs 3 --n 10000 --max-spread-pct 30
 
       - name: Package builds and installs into a fresh environment
@@ -45,5 +45,5 @@ jobs:
           .venv/bin/python -m build --wheel
           python -m venv /tmp/fresh
           /tmp/fresh/bin/pip install -q dist/*.whl
-          /tmp/fresh/bin/python -c "import keystone; print('import keystone: ok')"
-          /tmp/fresh/bin/keystone verify
+          /tmp/fresh/bin/python -c "import verdictplane; print('import verdictplane: ok')"
+          /tmp/fresh/bin/verdictplane verify

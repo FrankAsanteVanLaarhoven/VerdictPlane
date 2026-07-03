@@ -6,12 +6,12 @@ invokes it on demand, off the hot path. Every failure — no backend configured,
 no key, no network, model down, refusal — returns None; the approval flow is
 unaffected and the summary never decides the gate.
 
-Backend selection (KEYSTONE_ADVISORY): "off" (default) | "fable5" | "local".
+Backend selection (VERDICTPLANE_ADVISORY): "off" (default) | "fable5" | "local".
 - fable5: claude-fable-5 via the Claude API (raw HTTP, no SDK dependency),
   with a server-side claude-opus-4-8 refusal fallback enabled by default.
 - local:  an Ollama-served model on the local GPU (default qwen2.5:7b on the
   RTX 4080) for fully air-gapped, zero-egress deployments.
-KEYSTONE_ADVISORY_MODEL overrides the model for either backend.
+VERDICTPLANE_ADVISORY_MODEL overrides the model for either backend.
 
 Summaries are cached by action signature (backend:model:sha256 of the action)
 so repeated identical actions cost nothing.
@@ -38,7 +38,7 @@ Pending action:
 
 
 def backend() -> str:
-    return os.environ.get("KEYSTONE_ADVISORY", "off").strip().lower()
+    return os.environ.get("VERDICTPLANE_ADVISORY", "off").strip().lower()
 
 
 def action_signature(action: dict) -> str:
@@ -76,7 +76,7 @@ def _fable5_summary(action: dict) -> str | None:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         return None
-    model = os.environ.get("KEYSTONE_ADVISORY_MODEL", "claude-fable-5")
+    model = os.environ.get("VERDICTPLANE_ADVISORY_MODEL", "claude-fable-5")
     body = {
         "model": model,
         "max_tokens": 512,
@@ -103,7 +103,7 @@ def _fable5_summary(action: dict) -> str | None:
 def _local_summary(action: dict) -> str | None:
     host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
     body = {
-        "model": os.environ.get("KEYSTONE_ADVISORY_MODEL", "qwen2.5:7b"),
+        "model": os.environ.get("VERDICTPLANE_ADVISORY_MODEL", "qwen2.5:7b"),
         "prompt": PROMPT.format(action=json.dumps(action, indent=2, sort_keys=True)),
         "stream": False,
     }
@@ -118,7 +118,7 @@ def risk_summary(action: dict, *, cache_path: str = CACHE_PATH) -> str | None:
         mode = backend()
         if mode in ("", "off", "none", "0", "false"):
             return None
-        model = os.environ.get("KEYSTONE_ADVISORY_MODEL", "default")
+        model = os.environ.get("VERDICTPLANE_ADVISORY_MODEL", "default")
         key = f"{mode}:{model}:{action_signature(action)}"
         cache = _load_cache(cache_path)
         if key in cache:

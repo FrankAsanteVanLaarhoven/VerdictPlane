@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-from keystone.provenance import GENESIS, Ledger, _entry_hash
+from verdictplane.provenance import GENESIS, Ledger, _entry_hash
 
 N = 100  # entries per test ledger
 

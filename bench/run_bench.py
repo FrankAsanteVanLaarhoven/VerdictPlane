@@ -1,6 +1,6 @@
-"""Keystone benchmark harness (P5) -> artifacts/stats.json + docs/BENCHMARK.md.
+"""VerdictPlane benchmark harness (P5) -> artifacts/stats.json + docs/BENCHMARK.md.
 
-Measures, with KEYSTONE_ADVISORY forced off (perf) and forced-broken (fail-safe):
+Measures, with VERDICTPLANE_ADVISORY forced off (perf) and forced-broken (fail-safe):
   - enforcement overhead per governed call vs raw call: p50/p95/p99 for the
     allow, deny, and require_human (auto-resolved) paths
   - single-core allow-path throughput (governed actions/sec)
@@ -29,13 +29,13 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
-os.environ["KEYSTONE_ADVISORY"] = "off"  # perf + safety runs: advisory off
+os.environ["VERDICTPLANE_ADVISORY"] = "off"  # perf + safety runs: advisory off
 
-from keystone import advisory  # noqa: E402  (bench-only import; not enforcement)
-from keystone.gate import Gate  # noqa: E402
-from keystone.interceptor import ApprovalDenied, PolicyDenied, govern  # noqa: E402
-from keystone.policy import evaluate, load_policy  # noqa: E402
-from keystone.provenance import Ledger  # noqa: E402
+from verdictplane import advisory  # noqa: E402  (bench-only import; not enforcement)
+from verdictplane.gate import Gate  # noqa: E402
+from verdictplane.interceptor import ApprovalDenied, PolicyDenied, govern  # noqa: E402
+from verdictplane.policy import evaluate, load_policy  # noqa: E402
+from verdictplane.provenance import Ledger  # noqa: E402
 from workloads.driftguard_promote import governed_promote  # noqa: E402
 from workloads.sentinel_action import record_proposal  # noqa: E402
 
@@ -232,7 +232,7 @@ def fail_safe(workdir):
              ({"tool": "unknown.op", "effect": "write", "args": {}, "agent": "x"}, "require_human")]
     before = [evaluate(a, POLICY)[0] for a, _ in cases]
 
-    os.environ["KEYSTONE_ADVISORY"] = "fable5"
+    os.environ["VERDICTPLANE_ADVISORY"] = "fable5"
     os.environ["ANTHROPIC_API_KEY"] = "bench-key-not-real"
     real_urlopen = advisory.urllib.request.urlopen
 
@@ -246,7 +246,7 @@ def fail_safe(workdir):
         after = [evaluate(a, POLICY)[0] for a, _ in cases]
     finally:
         advisory.urllib.request.urlopen = real_urlopen
-        os.environ["KEYSTONE_ADVISORY"] = "off"
+        os.environ["VERDICTPLANE_ADVISORY"] = "off"
         os.environ.pop("ANTHROPIC_API_KEY", None)
 
     return {
@@ -295,13 +295,13 @@ def main():
     ap.add_argument("--n", type=int, default=20000, help="allow-path calls per run")
     ap.add_argument("--n-gated", type=int, default=2000)
     ap.add_argument("--max-spread-pct", type=float,
-                    default=float(os.environ.get("KEYSTONE_BENCH_MAX_SPREAD", "10")),
+                    default=float(os.environ.get("VERDICTPLANE_BENCH_MAX_SPREAD", "10")),
                     help="reproducibility target for allow-p99 spread across runs "
                          "(default 10; relax on noisy shared CI runners)")
     ap.add_argument("--out", default=os.path.join(ROOT, "artifacts", "stats.json"))
     args = ap.parse_args()
 
-    top = tempfile.mkdtemp(prefix="keystone-bench-")
+    top = tempfile.mkdtemp(prefix="verdictplane-bench-")
     try:
         runs = []
         for r in range(args.runs):
@@ -379,7 +379,7 @@ def write_report(s):
     def row(name, d):
         return f"| {name} | {d['p50_us']} | {d['p95_us']} | {d['p99_us']} |"
 
-    md = f"""# Keystone — Benchmark Report (P5)
+    md = f"""# VerdictPlane — Benchmark Report (P5)
 
 Produced by `make bench` (bench/run_bench.py) from live measurement.
 Machine-readable source: `artifacts/stats.json` (regenerated, not committed).
@@ -441,7 +441,7 @@ Advisory backend configured and transport forced to error: summary returned =
 ## Caveats
 
 - Human-gated paths are human-scale by design; the auto-resolved gate number
-  measures Keystone's machinery (submit + resolve + 2 ledger appends), not
+  measures VerdictPlane's machinery (submit + resolve + 2 ledger appends), not
   reviewer latency.
 - Numbers are host- and filesystem-dependent; re-run `make bench` on the
   target machine. fsync=False (default): tamper evidence is unaffected, a

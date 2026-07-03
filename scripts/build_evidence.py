@@ -20,10 +20,10 @@ OUT = os.path.join(ROOT, "docs", "EVIDENCE.md")
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from keystone.gate import Gate  # noqa: E402
-from keystone.interceptor import ApprovalDenied, PolicyDenied  # noqa: E402
-from keystone.policy import load_policy  # noqa: E402
-from keystone.provenance import Ledger  # noqa: E402
+from verdictplane.gate import Gate  # noqa: E402
+from verdictplane.interceptor import ApprovalDenied, PolicyDenied  # noqa: E402
+from verdictplane.policy import load_policy  # noqa: E402
+from verdictplane.provenance import Ledger  # noqa: E402
 from workloads.driftguard_promote import governed_promote  # noqa: E402
 from workloads.sentinel_action import governed_rollback, record_proposal  # noqa: E402
 
@@ -44,9 +44,9 @@ def sh(cmd, env=None, check=True):
 
 
 def cli(args, check=True):
-    env = {"KEYSTONE_LEDGER": os.path.join(RUN, "ledger.jsonl"),
-           "KEYSTONE_GATE": os.path.join(RUN, "gate")}
-    return sh([os.path.join(BIN, "keystone"), *args], env=env, check=check)
+    env = {"VERDICTPLANE_LEDGER": os.path.join(RUN, "ledger.jsonl"),
+           "VERDICTPLANE_GATE": os.path.join(RUN, "gate")}
+    return sh([os.path.join(BIN, "verdictplane"), *args], env=env, check=check)
 
 
 def block(text, lang=""):
@@ -114,8 +114,8 @@ def main():
     token = wait_pending(gate)
     demo.append("$ # governed_promote('7', gate_passed) is now BLOCKED in another process")
     demo.append(f"$ test -f registry.json && echo exists || echo absent\nabsent   <- side effect has NOT run")
-    demo.append("$ keystone pending\n" + cli(["pending"]).stdout.rstrip())
-    demo.append(f"$ keystone approve {token[:12]} --by frank\n"
+    demo.append("$ verdictplane pending\n" + cli(["pending"]).stdout.rstrip())
+    demo.append(f"$ verdictplane approve {token[:12]} --by frank\n"
                 + cli(["approve", token[:12], "--by", "frank"]).stdout.rstrip())
     t.join(timeout=10)
     demo.append("$ cat registry.json\n" + open(registry_file).read()
@@ -133,7 +133,7 @@ def main():
     t = threading.Thread(target=denied_promote)
     t.start()
     token = wait_pending(gate)
-    demo.append(f"$ keystone deny {token[:12]} --by frank\n"
+    demo.append(f"$ verdictplane deny {token[:12]} --by frank\n"
                 + cli(["deny", token[:12], "--by", "frank"]).stdout.rstrip())
     t.join(timeout=10)
     demo.append("$ cat registry.json\n" + open(registry_file).read()
@@ -154,7 +154,7 @@ def main():
                          kwargs=env)
     t.start()
     token = wait_pending(gate)
-    demo.append(f"$ keystone approve {token[:12]} --by frank   # Sentinel rollback\n"
+    demo.append(f"$ verdictplane approve {token[:12]} --by frank   # Sentinel rollback\n"
                 + cli(["approve", token[:12], "--by", "frank"]).stdout.rstrip())
     t.join(timeout=10)
     demo.append(f"# rollback executed with incident payload: {rollbacks[0]}")
@@ -172,10 +172,10 @@ def main():
     entry["record"]["outcome"] = "executed_but_forged"
     with open(tampered_path, "w") as f:
         f.write("\n".join(raw_lines[:3] + [json.dumps(entry, sort_keys=True)] + raw_lines[4:]) + "\n")
-    p = sh([os.path.join(BIN, "keystone"), "verify"],
-           env={"KEYSTONE_LEDGER": tampered_path, "KEYSTONE_GATE": os.path.join(RUN, "gate")},
+    p = sh([os.path.join(BIN, "verdictplane"), "verify"],
+           env={"VERDICTPLANE_LEDGER": tampered_path, "VERDICTPLANE_GATE": os.path.join(RUN, "gate")},
            check=False)
-    e6 = f"$ keystone verify   # after forging line 3's outcome\n{p.stdout.rstrip()}\nexit code: {p.returncode}"
+    e6 = f"$ verdictplane verify   # after forging line 3's outcome\n{p.stdout.rstrip()}\nexit code: {p.returncode}"
 
     matrix = """\
 | Claim | Evidence | Result |
@@ -190,13 +190,13 @@ def main():
 | Zero egress during enforcement | E7 — socket kill-switch + empty-netns battery (kernel-level) | pass |
 """
 
-    md = f"""# Keystone — Evidence Pack (P0–P4)
+    md = f"""# VerdictPlane — Evidence Pack (P0–P4)
 
 Assembled from live runs by `make evidence` (scripts/build_evidence.py).
 Nothing below is hand-written output.
 
 - **Commit:** `{commit}`
-- **Repo:** https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs
+- **Repo:** https://github.com/FrankAsanteVanLaarhoven/VerdictPlane
 - **Reproduce:** `make setup && make test && make evidence`
 
 ## Evidence Matrix
@@ -224,10 +224,10 @@ Recent history:
 
 ## E5 — Resulting provenance ledger
 
-`keystone log`:
+`verdictplane log`:
 
 {block(e5_log)}
-`keystone verify`:
+`verdictplane verify`:
 
 {block(e5_verify)}
 Raw hash-chained records (first 2 of {len(raw_lines)}):

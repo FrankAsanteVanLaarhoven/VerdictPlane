@@ -1,4 +1,4 @@
-# Contributing to Keystone
+# Contributing to VerdictPlane
 
 ## Setup
 

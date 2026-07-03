@@ -23,10 +23,10 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 BATTERY = textwrap.dedent("""
     import threading, time
-    from keystone.gate import Gate
-    from keystone.interceptor import ApprovalDenied, PolicyDenied, govern
-    from keystone.policy import load_policy
-    from keystone.provenance import Ledger
+    from verdictplane.gate import Gate
+    from verdictplane.interceptor import ApprovalDenied, PolicyDenied, govern
+    from verdictplane.policy import load_policy
+    from verdictplane.provenance import Ledger
     from workloads.driftguard_promote import governed_promote
     from workloads.sentinel_action import record_proposal
 
@@ -121,7 +121,7 @@ def test_enforcement_runs_in_empty_network_namespace(tmp_path):
 
     src = os.path.abspath(os.path.join(ROOT, "src"))
     env = {**os.environ, "PYTHONPATH": f"{src}:{os.path.abspath(ROOT)}",
-           "KEYSTONE_ADVISORY": "off"}
+           "VERDICTPLANE_ADVISORY": "off"}
     result = subprocess.run(
         [unshare, "-rn", sys.executable, "-c", NETNS_SCRIPT],
         capture_output=True, text=True, env=env, cwd=ROOT, timeout=120,

@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "keystone-aiops"
+name = "verdictplane"
 version = "0.1.0"
 description = "In-path, zero-egress control plane for AI actions: tamper-evident provenance, deterministic policy, human approval gates."
 requires-python = ">=3.12"
@@ -26,15 +26,15 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs"
-Evidence = "https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs/blob/main/docs/EVIDENCE.md"
-Benchmarks = "https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs/blob/main/docs/BENCHMARK.md"
+Repository = "https://github.com/FrankAsanteVanLaarhoven/VerdictPlane"
+Evidence = "https://github.com/FrankAsanteVanLaarhoven/VerdictPlane/blob/main/docs/EVIDENCE.md"
+Benchmarks = "https://github.com/FrankAsanteVanLaarhoven/VerdictPlane/blob/main/docs/BENCHMARK.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 
 [project.scripts]
-keystone = "keystone.cli:main"
+verdictplane = "verdictplane.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

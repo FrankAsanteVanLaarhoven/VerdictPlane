@@ -9,7 +9,7 @@ a safe deny). Exits 0 only if every path behaved and the chain verifies.
 import os
 import sys
 
-from keystone import ApprovalDenied, Gate, Ledger, PolicyDenied, govern
+from verdictplane import ApprovalDenied, Gate, Ledger, PolicyDenied, govern
 
 POLICY = {
     "default": "require_human",
@@ -19,12 +19,12 @@ POLICY = {
     ],
 }
 
-TIMEOUT = float(os.environ.get("KEYSTONE_DEMO_TIMEOUT", "60"))
+TIMEOUT = float(os.environ.get("VERDICTPLANE_DEMO_TIMEOUT", "60"))
 
 
 def main() -> int:
-    ledger = Ledger(os.environ.get("KEYSTONE_LEDGER", "/data/ledger.jsonl"))
-    gate = Gate(os.environ.get("KEYSTONE_GATE", "/data/gate"))
+    ledger = Ledger(os.environ.get("VERDICTPLANE_LEDGER", "/data/ledger.jsonl"))
+    gate = Gate(os.environ.get("VERDICTPLANE_GATE", "/data/gate"))
     env = dict(policy=POLICY, ledger=ledger, gate=gate)
 
     print("agent: read (policy allow) ->", end=" ")

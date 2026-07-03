@@ -6,10 +6,10 @@ import time
 
 import pytest
 
-from keystone.gate import Gate
-from keystone.interceptor import ApprovalDenied, PolicyDenied
-from keystone.mcp import governed_dispatch, guard_mcp_call
-from keystone.provenance import Ledger
+from verdictplane.gate import Gate
+from verdictplane.interceptor import ApprovalDenied, PolicyDenied
+from verdictplane.mcp import governed_dispatch, guard_mcp_call
+from verdictplane.provenance import Ledger
 
 POLICY = {
     "default": "require_human",

@@ -12,7 +12,7 @@ test:
 	$(PYTEST)
 
 verify:
-	$(PY) -c "import sys; from keystone.provenance import Ledger; ok, bad = Ledger().verify(); print('ledger ok' if ok else f'TAMPERED at line {bad}'); sys.exit(0 if ok else 1)"
+	$(PY) -c "import sys; from verdictplane.provenance import Ledger; ok, bad = Ledger().verify(); print('ledger ok' if ok else f'TAMPERED at line {bad}'); sys.exit(0 if ok else 1)"
 
 
 .PHONY: evidence
@@ -21,9 +21,9 @@ evidence:
 
 .PHONY: bench
 bench:
-	PYTHONPATH= KEYSTONE_ADVISORY=off $(PY) bench/run_bench.py
+	PYTHONPATH= VERDICTPLANE_ADVISORY=off $(PY) bench/run_bench.py
 
 .PHONY: demo
 demo:
-	KEYSTONE_LEDGER=artifacts/demo/ledger.jsonl KEYSTONE_GATE=artifacts/demo/gate \
-	KEYSTONE_DEMO_TIMEOUT=90 $(PY) deploy/demo_agent.py
+	VERDICTPLANE_LEDGER=artifacts/demo/ledger.jsonl VERDICTPLANE_GATE=artifacts/demo/gate \
+	VERDICTPLANE_DEMO_TIMEOUT=90 $(PY) deploy/demo_agent.py

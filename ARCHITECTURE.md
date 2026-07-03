@@ -1,14 +1,14 @@
-# Keystone — Architecture
+# VerdictPlane — Architecture
 
 ## The one sentence
 
-Keystone sits **in the path** of consequential AI actions and does three
+VerdictPlane sits **in the path** of consequential AI actions and does three
 deterministic things before anything commits: record, check, gate.
 
 ## Enforcement flow
 
 `govern(action, call, *, policy, ledger, gate)` is the single choke point
-(`src/keystone/interceptor.py`). Every entry surface funnels into it:
+(`src/verdictplane/interceptor.py`). Every entry surface funnels into it:
 
 | Surface | Module | Use when |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ the previous entry's SHA-256 (`hash = H(prev + body)`).
 - **Threat model:** tamper-*evidence*, not tamper-*prevention*. A privileged
   attacker can delete the file or rewrite the tail wholesale; that is
   detectable by comparing `head()` against an externally anchored head hash
-  (`keystone head` exists for exactly this — anchor it somewhere the attacker
+  (`verdictplane head` exists for exactly this — anchor it somewhere the attacker
   can't reach). Merkle-tree anchoring is the planned upgrade path.
 - **Durability:** `fsync=False` by default (measured ~19 µs p99 end-to-end);
   a crash can lose the buffered tail, which presents as truncation — an
@@ -60,7 +60,7 @@ don't match; anything unmatched takes `default` (which itself defaults to
 
 File-backed `pending/` → `resolved/` queue (`gate.py`). Cross-process by
 construction: an interceptor blocked in one process/container resolves the
-moment a reviewer runs `keystone approve` in another — including across
+moment a reviewer runs `verdictplane approve` in another — including across
 network-less containers sharing a volume.
 
 Latency characteristics are **human-scale by design**: polling (50 ms default)

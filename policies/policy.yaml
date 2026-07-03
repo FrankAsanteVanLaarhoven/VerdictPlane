@@ -1,4 +1,4 @@
-# Keystone example policy.
+# VerdictPlane example policy.
 # First-match wins, top to bottom; anything unmatched falls to `default`.
 # Conditions: scalars are case-sensitive globs; {gt|lt|eq|in: ...} are operators.
 # Missing fields / incomparable types never match a rule (falls to the default).

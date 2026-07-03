@@ -1,6 +1,6 @@
 """Guardrail: the enforcement path imports no model client and no network module.
 
-Every module under src/keystone/ is enforcement-path unless explicitly listed
+Every module under src/verdictplane/ is enforcement-path unless explicitly listed
 in NON_ENFORCEMENT (advisory/CLI live off the hot path). Imports are checked
 statically (AST) against a strict allowlist, so a violation fails CI before it
 can ever run.
@@ -11,7 +11,7 @@ import os
 
 import pytest
 
-SRC = os.path.join(os.path.dirname(__file__), "..", "src", "keystone")
+SRC = os.path.join(os.path.dirname(__file__), "..", "src", "verdictplane")
 
 # Off-hot-path modules, allowed to talk to models/CLIs (still zero-egress by default).
 NON_ENFORCEMENT = {"advisory.py", "cli.py"}
@@ -24,7 +24,7 @@ ALLOWED_IMPORTS = {
     # declared schema/config deps (no network)
     "pydantic", "yaml",
     # intra-package
-    "keystone",
+    "verdictplane",
 }
 
 # Network modules called out explicitly for clarity. Model-client SDKs need no
@@ -52,7 +52,7 @@ def top_level_imports(path):
             roots.update(alias.name.split(".")[0] for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
             if node.level > 0:  # relative import -> intra-package
-                roots.add("keystone")
+                roots.add("verdictplane")
             elif node.module:
                 roots.add(node.module.split(".")[0])
     return roots

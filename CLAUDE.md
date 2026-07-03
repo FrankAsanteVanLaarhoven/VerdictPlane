@@ -1,7 +1,7 @@
-# Keystone — agent guardrails
+# VerdictPlane — agent guardrails
 
 Invariants (enforced by tests — never weaken them):
-- The enforcement path (`src/keystone/*` except `advisory.py`, `cli.py`) is
+- The enforcement path (`src/verdictplane/*` except `advisory.py`, `cli.py`) is
   deterministic: no model client, no network import, no GPU.
   `tests/test_enforcement_imports.py` asserts this statically.
 - Provenance is append-only; never rewrite ledger history. `verify()` is part of CI.

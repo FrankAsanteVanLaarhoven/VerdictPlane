@@ -1,4 +1,4 @@
-"""Example: an MCP-style agent whose tool-calls are governed by Keystone.
+"""Example: an MCP-style agent whose tool-calls are governed by VerdictPlane.
 
 The "agent" here is a scripted plan (read a file, then write one) driving an
 MCP-style dispatch table. The point is the wiring: the agent holds only the
@@ -12,8 +12,8 @@ watch it fail safe on timeout.
 import os
 import sys
 
-from keystone import Gate, Ledger, load_policy
-from keystone.mcp import governed_dispatch
+from verdictplane import Gate, Ledger, load_policy
+from verdictplane.mcp import governed_dispatch
 
 WORKSPACE = "artifacts/demo_workspace"
 
@@ -52,7 +52,7 @@ def main():
 
     # the agent's plan: read, then write
     print("agent: read_file ->", call_tool("read_file", {"path": "notes.txt"}).strip())
-    print("agent: write_file (blocks for approval; approve via keystone CLI)...")
+    print("agent: write_file (blocks for approval; approve via verdictplane CLI)...")
     print("agent:", call_tool("write_file", {"path": "notes.txt", "content": "rescheduled\n"}))
 
 

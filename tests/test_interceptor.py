@@ -6,8 +6,8 @@ import time
 
 import pytest
 
-from keystone.gate import Gate
-from keystone.interceptor import (
+from verdictplane.gate import Gate
+from verdictplane.interceptor import (
     ApprovalDenied,
     PolicyDenied,
     govern,
@@ -15,7 +15,7 @@ from keystone.interceptor import (
     redact,
     set_agent,
 )
-from keystone.provenance import Ledger
+from verdictplane.provenance import Ledger
 
 POLICY = {
     "default": "require_human",

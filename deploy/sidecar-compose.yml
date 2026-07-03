@@ -1,4 +1,4 @@
-# Keystone sidecar deployment — zero-egress by construction.
+# VerdictPlane sidecar deployment — zero-egress by construction.
 #
 #   docker compose -f deploy/sidecar-compose.yml up --build agent
 #   docker compose -f deploy/sidecar-compose.yml run reviewer pending
@@ -17,8 +17,8 @@ services:
       dockerfile: deploy/Dockerfile
     network_mode: "none"
     volumes:
-      - keystone-data:/data
-    entrypoint: ["python", "/keystone/deploy/demo_agent.py"]
+      - verdictplane-data:/data
+    entrypoint: ["python", "/verdictplane/deploy/demo_agent.py"]
 
   reviewer:
     build:
@@ -26,8 +26,8 @@ services:
       dockerfile: deploy/Dockerfile
     network_mode: "none"
     volumes:
-      - keystone-data:/data
-    # `docker compose run reviewer <subcommand>` invokes the keystone CLI.
+      - verdictplane-data:/data
+    # `docker compose run reviewer <subcommand>` invokes the verdictplane CLI.
 
 volumes:
-  keystone-data:
+  verdictplane-data:

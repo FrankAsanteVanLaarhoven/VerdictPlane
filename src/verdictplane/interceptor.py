@@ -17,7 +17,7 @@ from contextvars import ContextVar
 from .policy import DENY, REQUIRE_HUMAN, evaluate
 from .types import Action
 
-_agent: ContextVar[str] = ContextVar("keystone_agent", default="unknown")
+_agent: ContextVar[str] = ContextVar("verdictplane_agent", default="unknown")
 
 _SECRET_KEY = re.compile(
     r"password|passwd|secret|token|api_?key|authorization|credential|private_key",

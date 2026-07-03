@@ -1,6 +1,6 @@
 # Case Study — Governing Two Real AI Systems on Day One
 
-Keystone's wedge claim is composability: existing AI systems adopt it by
+VerdictPlane's wedge claim is composability: existing AI systems adopt it by
 wrapping their consequential entry points, not by rewriting anything. These
 are the first two, both real codebases, both integrated with ~60-line
 adapters (`workloads/`).
@@ -14,11 +14,11 @@ registry exposes a fail-closed accuracy gate and a promotion entry point:
   must beat the baseline by ≥ margin (registry.py:84);
 - `promote_version(version)` — points the `production` MLflow alias at a
   version (registry.py:371). Its docstring already promised "human-gated
-  promotion"; before Keystone, nothing enforced that.
+  promotion"; before VerdictPlane, nothing enforced that.
 
 **The integration** (`workloads/driftguard_promote.py`): the gate result rides
 inside the action's `args`, the side effect is an injected callable
-(`driftguard_promote_fn()` lazily binds the real MLflow call, so Keystone
+(`driftguard_promote_fn()` lazily binds the real MLflow call, so VerdictPlane
 gains zero MLflow dependency), and policy does the rest:
 
 ```yaml
@@ -33,7 +33,7 @@ gains zero MLflow dependency), and policy does the rest:
 **What changed.** The baseline-gate result is now tamper-evident provenance
 attached to every promotion decision; a failed candidate is deterministically
 blocked without reaching a reviewer; and pointing production at a new version
-physically cannot happen until someone runs `keystone approve`. Live
+physically cannot happen until someone runs `verdictplane approve`. Live
 before/after transcript: docs/EVIDENCE.md § E4.
 
 ## 2 · Sentinel: incident-response rollback
@@ -68,5 +68,5 @@ From `make bench` on the reference host (full method in docs/BENCHMARK.md):
 Zero provenance gaps across the mixed benchmark load; the chain verifies after
 every run. The pattern generalizes: if your system has a consequential entry
 point with a callable signature, a ~60-line adapter and a few policy rules put
-it under provenance and a human gate — without the system knowing Keystone
+it under provenance and a human gate — without the system knowing VerdictPlane
 exists.

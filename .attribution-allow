@@ -2,5 +2,5 @@
 # FUNCTIONAL API identifiers (endpoint URLs, model IDs, wire headers) — not
 # as attribution. Credit and authorship lines remain blocked here too.
 # Approved by Frank Asante Van Laarhoven, 2026-07-03.
-src/keystone/advisory.py
+src/verdictplane/advisory.py
 tests/test_advisory.py

@@ -1,4 +1,4 @@
-# Keystone — Benchmark Report (P5)
+# VerdictPlane — Benchmark Report (P5)
 
 Produced by `make bench` (bench/run_bench.py) from live measurement.
 Machine-readable source: `artifacts/stats.json` (regenerated, not committed).
@@ -60,7 +60,7 @@ True; unmatched action default =
 ## Caveats
 
 - Human-gated paths are human-scale by design; the auto-resolved gate number
-  measures Keystone's machinery (submit + resolve + 2 ledger appends), not
+  measures VerdictPlane's machinery (submit + resolve + 2 ledger appends), not
   reviewer latency.
 - Numbers are host- and filesystem-dependent; re-run `make bench` on the
   target machine. fsync=False (default): tamper evidence is unaffected, a

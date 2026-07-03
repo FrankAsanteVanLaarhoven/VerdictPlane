@@ -12,11 +12,11 @@ import time
 
 import pytest
 
-from keystone.cli import main as cli_main
-from keystone.gate import Gate
-from keystone.interceptor import ApprovalDenied, PolicyDenied
-from keystone.policy import load_policy
-from keystone.provenance import Ledger
+from verdictplane.cli import main as cli_main
+from verdictplane.gate import Gate
+from verdictplane.interceptor import ApprovalDenied, PolicyDenied
+from verdictplane.policy import load_policy
+from verdictplane.provenance import Ledger
 from workloads.driftguard_promote import build_action, governed_promote
 from workloads.sentinel_action import governed_rollback, record_proposal
 
@@ -125,7 +125,7 @@ def test_staging_promotion_with_failed_gate_still_denied(env):
 
 
 def test_unknown_stage_falls_to_safe_default(policy):
-    from keystone.policy import evaluate
+    from verdictplane.policy import evaluate
     action = build_action("7", "Shadow", GATE_PASS)
     assert evaluate(action, policy)[0] == "require_human"
 
