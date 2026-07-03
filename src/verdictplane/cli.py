@@ -38,9 +38,11 @@ def _cmd_pending(args, gate: Gate) -> int:
     for entry in pending:
         action = entry.get("action", {})
         age = (time.time_ns() - entry.get("submitted_ts", 0)) / 1e9
+        quorum = entry.get("quorum", 1)
+        qstr = f"  quorum={quorum}" if quorum > 1 else ""
         print(f"{entry['token'][:16]}  {action.get('tool', '?')}  "
               f"effect={action.get('effect', '?')}  agent={action.get('agent', '?')}  "
-              f"age={age:.0f}s")
+              f"age={age:.0f}s{qstr}")
         print(f"  args: {json.dumps(action.get('args', {}), sort_keys=True)}")
         if advise:
             summary = advise(action)
@@ -55,9 +57,16 @@ def _cmd_pending(args, gate: Gate) -> int:
 
 def _cmd_resolve(args, gate: Gate, approved: bool) -> int:
     token = _resolve_token(gate, args.token)
-    entry = gate.resolve(token, approved, by=args.by)
-    verdict = "approved" if approved else "denied"
-    print(f"{verdict} {token[:16]} ({entry['action'].get('tool', '?')}) by {args.by}")
+    result = gate.resolve(token, approved, by=args.by)
+    if result.get("approved") is None:  # quorum not yet reached — vote recorded, still pending
+        got, need = len(result.get("approved_by", [])), result.get("quorum", 1)
+        print(f"vote recorded by {args.by}: {token[:16]} "
+              f"({got}/{need} approvals; awaiting {result.get('remaining', 0)} more)")
+        return 0
+    verdict = "approved" if result["approved"] else "denied"
+    deciders = result.get("approved_by") if result["approved"] else result.get("denied_by")
+    who = ", ".join(deciders or [args.by])
+    print(f"{verdict} {token[:16]} ({result['action'].get('tool', '?')}) by {who}")
     return 0
 
 

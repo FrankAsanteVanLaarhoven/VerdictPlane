@@ -31,8 +31,8 @@ on trust. "Validated" = backed by a passing automated test **and** confirmed in 
 | Benchmark reproducibility (spread ≤ 10%) | **Conditional** | A dedicated-hardware claim; sensitive to CPU-governor state (documented). A cold first run can exceed the spread while absolute targets still pass |
 | Independent (third-party) reproduction | **Pending** | All artefacts regenerate locally; foreign-hardware reproduction exists via CI runners (absolute targets met), but no external party has reproduced them yet |
 
-**Test suite:** 193 tests, all passing (conformance, tamper, gating, zero-egress, workloads,
-strict-provenance, anchoring).
+**Test suite:** 201 tests, all passing (conformance, tamper, gating, zero-egress, workloads,
+strict-provenance, anchoring, quorum).
 
 ## Measured performance (fresh run, this review)
 
@@ -66,8 +66,9 @@ strict-provenance, anchoring).
   recorded first). A crash mid-execution presents as a detectable tail gap. Audit-critical paths
   can opt into **strict provenance** (`VERDICTPLANE_STRICT_PROVENANCE=1`) to record an `intent`
   entry before the allow side effect too, at the cost of a second append per action.
-- **The human gate is a polling, single-reviewer mechanism** — correct and cross-process, but
-  human-scale; multi-reviewer quorum, SLAs, and notifications are roadmap.
+- **The human gate is a polling mechanism** (human-scale, cross-process). Multi-reviewer **k-of-n
+  quorum with deny-veto** is now supported (per-rule `quorum`; approver identities recorded);
+  reviewer SLAs / notifications remain roadmap.
 - **Headline latency is buffered-durability mode**; a durable-`fsync` benchmark mode is roadmap.
 - **Benchmarks are host-dependent** — re-run `make bench` on target hardware.
 - **Independent reproduction is still pending** — treat v0.1.0 performance/reproducibility claims
@@ -78,7 +79,7 @@ strict-provenance, anchoring).
 ```bash
 git clone https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git && cd VerdictPlane
 make setup     # venv + editable install
-make test      # 193 tests
+make test      # 201 tests
 make bench      # six-target scoreboard; nonzero exit on any absolute-target miss
 make evidence  # regenerates docs/EVIDENCE.md from live runs
 ```

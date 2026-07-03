@@ -96,9 +96,14 @@ def govern(action: dict, call, *, policy, ledger, gate, gate_timeout: float | No
     if decision == REQUIRE_HUMAN:
         token = ledger.append({**base, "outcome": "pending"})
         base = {**base, "token": token}
-        if not gate.await_approval(token, action, timeout=gate_timeout):
+        approve_kwargs = {"timeout": gate_timeout}
+        quorum = (rule or {}).get("quorum")  # per-rule k-of-n; default 1 at the gate
+        if quorum is not None:
+            approve_kwargs["quorum"] = quorum
+        if not gate.await_approval(token, action, **approve_kwargs):
             ledger.append({**base, "outcome": "denied_by_human"})
             raise ApprovalDenied(f"{action['tool']}: not approved")
+        base = {**base, "approved_by": (gate.resolution(token) or {}).get("approved_by", [])}
     elif strict:  # allow path + strict: record intent BEFORE the side effect
         token = ledger.append({**base, "outcome": "intent"})
         base = {**base, "token": token}

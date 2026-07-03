@@ -49,10 +49,11 @@ forward commitment not yet load-bearing. *Documented follow-ups (later increment
 untouched):* **ed25519 signing** for true non-repudiation + **Merkle inclusion proofs** for
 selective auditor disclosure. *EIGS: 10.*
 
-**T8 · Multi-reviewer quorum gate.** k-of-n approval, per-rule quorum, reviewer identity + SLA/expiry,
-non-repudiable approvals. *Deliverable:* `gate` quorum mode (still file-backed, still fail-safe→deny).
-*Acceptance:* k-of-n enforced; partial approval never executes; timeout still denies; cross-process.
-*EIGS: 7.*
+**T8 · Multi-reviewer quorum gate.** *(shipped.)* Per-rule `quorum: k` k-of-n approval with
+**deny-veto**; one atomic vote per reviewer identity (cross-process), approver identities recorded in
+the ledger; timeout still denies; backward compatible at quorum 1 (default). CLI `approve`/`deny`
+accumulate votes and report progress. **Honest scope:** reviewer SLAs, expiry policies, and
+notifications remain roadmap (enterprise workflow track). *EIGS: 7.*
 
 **T6 · Durability-mode performance matrix.** Publish the perf envelope across durability modes:
 `memory → jsonl-buffered (current headline) → durable-fsync → sidecar → approval`, each with p50/p99
@@ -158,5 +159,6 @@ advisory model better* — the advisory stays strictly off-path and out of scope
    measuring pre-execution action governance* (a category claim we can defend by construction), and
    substantiate empirical-superiority claims only after external reproduction.
 
-**Current milestone:** Phase A · T7 (external anchoring — **shipped**) → T8 (quorum) → T6 (durability
-perf matrix). Follow-ups parked: ed25519 signing + Merkle inclusion proofs (post-alpha).
+**Current milestone:** Phase A · T7 (external anchoring — **shipped**) → T8 (quorum — **shipped**) →
+**T6 (durability perf matrix — next)**. Follow-ups parked: ed25519 signing + Merkle inclusion proofs
+(post-alpha).

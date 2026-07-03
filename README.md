@@ -178,13 +178,16 @@ rules:
     decision: deny
   - match: { tool: db.write, args.amount: { gt: 1000 } }
     decision: require_human
+    quorum: 2                                       # k-of-n approval; any deny vetoes
   - match: { tool: "fs.*", effect: write }        # globs; gt/lt/eq/in operators
     decision: require_human
 ```
 
 Missing fields, unknown operators, and incomparable types never match a rule —
-actions fall through toward the safe default, never through an error. Examples
-in [`policies/`](policies/).
+actions fall through toward the safe default, never through an error. A
+`require_human` rule may set `quorum: k` for k-of-n approval (each reviewer's
+`verdictplane approve` counts once; any `deny` vetoes; the approver identities
+are recorded in the ledger). Examples in [`policies/`](policies/).
 
 ## Real workloads, day one
 
@@ -220,7 +223,8 @@ src/verdictplane/     enforcement core: types, provenance, policy, interceptor,
 policies/         example + workload policies
 workloads/        governed DriftGuard promotion, Sentinel rollback
 bench/            make bench -> artifacts/stats.json + docs/BENCHMARK.md
-tests/            193 tests: conformance, tamper, gating, zero-egress, strict-provenance, anchoring
+tests/            201 tests: conformance, tamper, gating, zero-egress, strict-provenance,
+                  anchoring, quorum
 deploy/           Dockerfile, network-less sidecar compose, demo agent
 docs/             EVIDENCE.md (audit pack), BENCHMARK.md (measured numbers),
                   EVIDENCE_APPENDIX.md (conditions + reproduction),

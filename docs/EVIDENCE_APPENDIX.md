@@ -16,6 +16,7 @@ external auditor can reproduce them. Companion documents:
 | 100% governed-call ledger coverage | Mixed-workload completeness incl. P4 wrappers | `make test` (tests/test_workloads.py) + `make bench` |
 | Strict provenance records allow-intent *before* the side effect (opt-in) | `intent`→`executed` ordering; the `intent` survives a failed call; `intent` is non-terminal so the completeness KPI is unchanged | `VERDICTPLANE_STRICT_PROVENANCE=1`; `make test` (tests/test_interceptor.py strict-provenance cases) |
 | Human gate blocks side effects (approve/deny/timeout) | Live cross-process before/after transcript | `make evidence` (E4); interactive: `examples/quickstart.py` + `verdictplane approve` |
+| Multi-reviewer k-of-n quorum + deny-veto | Partial approval never executes; per-rule quorum via `govern`; approver identities recorded | `make test` (tests/test_quorum.py) |
 | Fail-closed on failed accuracy gate | Deterministic deny, no reviewer contacted | `make test` (tests/test_workloads.py) |
 | Advisory is fail-safe and cannot decide | Broken-transport run, decisions byte-identical | `make bench` (fail_safe section) + `make test` (tests/test_advisory.py) |
 | Performance targets | 6-target scoreboard, exits nonzero on regression | `make bench` |
@@ -87,9 +88,11 @@ This runs on every CI push (`.github/workflows/ci.yml`, final step).
   non-repudiation; the post-anchor tail is only covered by the next checkpoint, so
   anchor frequently. Privileged whole-file deletion, ed25519 signing (true
   non-repudiation), and Merkle inclusion proofs remain out of scope / roadmap.
-- **The gate is a polling, single-reviewer mechanism** — correct and
-  cross-process, but human-scale; multi-reviewer quorum, SLAs, and
-  notifications are roadmap (enterprise workflow track).
+- **The gate is a polling mechanism** (human-scale, cross-process). Multi-reviewer
+  **k-of-n quorum with deny-veto** is now supported: a `require_human` rule may set
+  `quorum: k`, `verdictplane approve` / `deny` accumulate one vote per identity, and
+  the approver identities are recorded in the ledger. Reviewer SLAs / notifications
+  remain roadmap (enterprise workflow track).
 - **Headline latency is buffered-durability mode.** See benchmark conditions
   above; a durable-fsync benchmark mode is roadmap.
 - **Benchmarks are host-dependent.** Re-run `make bench` on target hardware;
@@ -105,7 +108,7 @@ This runs on every CI push (`.github/workflows/ci.yml`, final step).
 git clone https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git
 cd VerdictPlane
 make setup        # venv + editable install
-make test         # 193 tests: conformance, tamper, gating, zero-egress, anchoring
+make test         # 201 tests: conformance, tamper, gating, zero-egress, anchoring, quorum
 make bench        # six-target scoreboard; nonzero exit on any miss
 make evidence     # regenerates docs/EVIDENCE.md from live runs
 ```
