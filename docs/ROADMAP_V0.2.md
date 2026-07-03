@@ -64,6 +64,14 @@ with the *correct* governance verdict (allow / deny / require_human) and effect.
 *Acceptance:* deterministic policy reproduces every label; inter-label consistency checked; corpus
 is versioned and documented. *EIGS: 15.* **← highest credibility risk (see §6).**
 
+*Hybrid execution standard (agreed):* v0.2 ships **synthetic-adversarial** cases authored by a
+structured methodology, but held to a high bar so it is not dismissed as "just synthetic":
+(a) every action carries a `source` field (`synthetic` / `real` / `anonymized`) plus provenance and
+sensitivity metadata, so **real/anonymized traces drop in later without a schema change** (v0.3+);
+(b) an **independent reviewer validates a significant sample** and per-action labelling rationale
+*and disagreements* are published; (c) the write-up states plainly what is synthetic and roadmaps
+real-trace integration. Transparency here increases credibility rather than reducing it.
+
 **T2 · Side-Effect Escape track (THE headline).** An adversarial harness that drives thousands of
 actions (incl. mutation attempts, race conditions, malformed args, policy-evasion shapes) through a
 governed dispatch wired to *instrumented* fake side-effect sinks, and counts any mutation that fired
@@ -136,10 +144,13 @@ scoreboard, and exits nonzero on score < threshold **or** any critical failure.
 Distributed/HA ledger; a hosted control-plane service; a GUI reviewer console; and *making the
 advisory model better* — the advisory stays strictly off-path and out of scope for governance claims.
 
-## 8 · Open scope decisions (need sign-off before building)
+## 8 · Scope decisions (agreed 2026-07-03)
 
-1. **Corpus source** — synthetic-adversarial (recommended) vs pursue real/anonymized traces.
-2. **v0.2 breadth** — all three phases, or ship Phase A (hardening) as v0.2.0-alpha first and
-   re-scope B/C after.
-3. **Benchmark naming/claim posture** — "openly-specified benchmark" vs a stronger "SOTA" framing
-   (recommend the former until external reproduction).
+1. **Breadth:** ship **Phase A (hardening) as v0.2.0-alpha first**, then re-scope B/C. ← in progress.
+2. **Corpus:** **hybrid** — synthetic-adversarial for v0.2 with a schema designed so real/anonymized
+   traces drop in later for a credibility upgrade (Phase B).
+3. **Positioning:** lead with a **standard-setting** claim — EAG-Bench as *a new open standard for
+   measuring pre-execution action governance* (a category claim we can defend by construction), and
+   substantiate empirical-superiority claims only after external reproduction.
+
+**Current milestone:** Phase A · T7 (non-repudiation) → T8 (quorum) → T6 (durability perf matrix).
