@@ -22,3 +22,8 @@ evidence:
 .PHONY: bench
 bench:
 	PYTHONPATH= KEYSTONE_ADVISORY=off $(PY) bench/run_bench.py
+
+.PHONY: demo
+demo:
+	KEYSTONE_LEDGER=artifacts/demo/ledger.jsonl KEYSTONE_GATE=artifacts/demo/gate \
+	KEYSTONE_DEMO_TIMEOUT=90 $(PY) deploy/demo_agent.py

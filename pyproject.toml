@@ -8,10 +8,16 @@ version = "0.1.0"
 description = "In-path, zero-egress control plane for AI actions: tamper-evident provenance, deterministic policy, human approval gates."
 requires-python = ">=3.12"
 authors = [{ name = "Frank Asante Van Laarhoven", email = "frankleroyvan@gmail.com" }]
+license = { text = "MIT" }
 dependencies = [
     "pydantic>=2.7",
     "PyYAML>=6.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs"
+Evidence = "https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs/blob/main/docs/EVIDENCE.md"
+Benchmarks = "https://github.com/FrankAsanteVanLaarhoven/Keystone-AIOPs/blob/main/docs/BENCHMARK.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
