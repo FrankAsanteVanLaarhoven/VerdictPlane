@@ -10,7 +10,9 @@ not yet a bench target · **[planned: EAG-Bench]** Phase B, not yet measured.
 **How computed & kind.** Measured metrics regenerate from `make bench` (latency, throughput, tamper,
 completeness, fail-safe) or `make test` (truncation/rollback, zero-egress). Latency and throughput
 are **deployable** (they bound the runtime cost of sitting in the loop); the integrity and egress
-metrics are **diagnostic** (they verify a property, not a per-request cost).
+metrics are **diagnostic** (they verify a property, not a per-request cost). Latency/throughput are
+also published across **durability modes** (`memory` / `jsonl-buffered` / `durable-fsync`) in the
+benchmark's durability matrix, so the buffered headline is never read as the durable-fsync cost.
 
 ## Measured now (v0.2.0-alpha)
 

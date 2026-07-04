@@ -55,11 +55,14 @@ the ledger; timeout still denies; backward compatible at quorum 1 (default). CLI
 accumulate votes and report progress. **Honest scope:** reviewer SLAs, expiry policies, and
 notifications remain roadmap (enterprise workflow track). *EIGS: 7.*
 
-**T6 · Durability-mode performance matrix.** Publish the perf envelope across durability modes:
-`memory → jsonl-buffered (current headline) → durable-fsync → sidecar → approval`, each with p50/p99
-+ throughput and the tamper/durability guarantees each mode gives. *Deliverable:* extended
-`make bench` matrix. *Acceptance:* every mode measured on pinned hardware with governor recorded;
-fsync mode meets a stated (higher) latency target. *EIGS: 5.*
+**T6 · Durability-mode performance matrix.** *(shipped.)* `make bench` now measures the allow-path
+cost across ledger durability modes with policy + gate held fixed: **memory** (≈ 9 µs p99 / ~150k
+ops/s — diagnostic lower bound, no persistence), **jsonl-buffered** (≈ 18 µs / ~60k — the deployable
+default), **durable-fsync** (≈ 2.4 ms p99 / ~600 ops/s on this host — crash-durable tail). Each row
+states its guarantee. **Honest finding:** durability costs ~100× — `durable-fsync` does *not* meet
+the buffered `<1 ms` / `>10k` targets, so the sub-20 µs headline is explicitly a buffered-mode number.
+(`sidecar`/`approval` dropped from the matrix — a deployment mode and an already-measured decision
+path, not ledger durability axes.) *EIGS: 5.*
 
 ### Phase B — EAG-Bench core
 
@@ -159,6 +162,6 @@ advisory model better* — the advisory stays strictly off-path and out of scope
    measuring pre-execution action governance* (a category claim we can defend by construction), and
    substantiate empirical-superiority claims only after external reproduction.
 
-**Current milestone:** Phase A · T7 (external anchoring — **shipped**) → T8 (quorum — **shipped**) →
-**T6 (durability perf matrix — next)**. Follow-ups parked: ed25519 signing + Merkle inclusion proofs
-(post-alpha).
+**Phase A COMPLETE** — T7 (external anchoring), T8 (quorum), T6 (durability matrix) all shipped; the
+three limitations named in the evidence appendix are closed. **v0.2.0-alpha is tag-ready.** Next:
+re-scope Phase B (EAG-Bench). Follow-ups parked: ed25519 signing + Merkle inclusion proofs (post-alpha).

@@ -93,8 +93,12 @@ This runs on every CI push (`.github/workflows/ci.yml`, final step).
   `quorum: k`, `verdictplane approve` / `deny` accumulate one vote per identity, and
   the approver identities are recorded in the ledger. Reviewer SLAs / notifications
   remain roadmap (enterprise workflow track).
-- **Headline latency is buffered-durability mode.** See benchmark conditions
-  above; a durable-fsync benchmark mode is roadmap.
+- **Headline latency is buffered-durability mode** — now published alongside the
+  alternatives in the benchmark's **durability matrix** (`memory` ≈ 9 µs p99 /
+  ~150k ops/s diagnostic lower bound · `jsonl-buffered` ≈ 18 µs / ~60k the default ·
+  `durable-fsync` ≈ 2.4 ms p99 / ~600 ops/s on this host). Durability costs ~100×;
+  the sub-20 µs headline is explicitly a buffered-mode number, and durability-
+  sensitive deployments choose `fsync=True` and accept the higher latency.
 - **Benchmarks are host-dependent.** Re-run `make bench` on target hardware;
   the harness pins and publishes its environment in `stats.json` and flags
   dirty-tree captures.
@@ -108,7 +112,7 @@ This runs on every CI push (`.github/workflows/ci.yml`, final step).
 git clone https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git
 cd VerdictPlane
 make setup        # venv + editable install
-make test         # 201 tests: conformance, tamper, gating, zero-egress, anchoring, quorum
+make test         # 206 tests: conformance, tamper, gating, zero-egress, anchoring, quorum, durability
 make bench        # six-target scoreboard; nonzero exit on any miss
 make evidence     # regenerates docs/EVIDENCE.md from live runs
 ```

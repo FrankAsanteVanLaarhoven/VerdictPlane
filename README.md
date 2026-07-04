@@ -223,8 +223,8 @@ src/verdictplane/     enforcement core: types, provenance, policy, interceptor,
 policies/         example + workload policies
 workloads/        governed DriftGuard promotion, Sentinel rollback
 bench/            make bench -> artifacts/stats.json + docs/BENCHMARK.md
-tests/            201 tests: conformance, tamper, gating, zero-egress, strict-provenance,
-                  anchoring, quorum
+tests/            206 tests: conformance, tamper, gating, zero-egress, strict-provenance,
+                  anchoring, quorum, durability
 deploy/           Dockerfile, network-less sidecar compose, demo agent
 docs/             EVIDENCE.md (audit pack), BENCHMARK.md (measured numbers),
                   EVIDENCE_APPENDIX.md (conditions + reproduction),

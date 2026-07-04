@@ -58,21 +58,25 @@ def _canon(d: dict) -> bytes:
 class Ledger:
     """Append-only JSONL ledger with a SHA-256 hash chain.
 
-    fsync=True trades append latency for crash durability; tamper evidence is
-    unaffected either way (a lost tail is truncation, detectable via an
-    anchored head, not silent rewrite).
+    Durability modes: ``path=None`` keeps entries in memory only (ephemeral, no
+    cross-process — a diagnostic / low-latency mode); a path with ``fsync=False``
+    (default) appends buffered; ``fsync=True`` fsyncs each append for crash
+    durability. Tamper evidence is identical across modes.
     """
 
-    def __init__(self, path: str = "artifacts/ledger.jsonl", *, fsync: bool = False):
+    def __init__(self, path: str | None = "artifacts/ledger.jsonl", *, fsync: bool = False):
         self.path = path
         self.fsync = fsync
         self._lock = threading.Lock()
         self._head: str | None = None  # cached; loaded lazily from disk
+        self._mem: list | None = [] if path is None else None  # in-memory mode
 
     def head(self) -> str:
         """Hash of the last entry (GENESIS for an empty ledger)."""
         if self._head is not None:
             return self._head
+        if self._mem is not None:
+            return self._mem[-1]["hash"] if self._mem else GENESIS
         if not os.path.exists(self.path):
             return GENESIS
         last = None
@@ -89,19 +93,25 @@ class Ledger:
             prev = self.head()
             body = {"ts": time.time_ns(), "prev": prev, "record": record}
             h = _entry_hash(prev, body)
-            d = os.path.dirname(self.path)
-            if d:
-                os.makedirs(d, exist_ok=True)
-            with open(self.path, "a") as f:
-                f.write(json.dumps({**body, "hash": h}, sort_keys=True) + "\n")
-                f.flush()
-                if self.fsync:
-                    os.fsync(f.fileno())
+            if self._mem is not None:
+                self._mem.append({**body, "hash": h})
+            else:
+                d = os.path.dirname(self.path)
+                if d:
+                    os.makedirs(d, exist_ok=True)
+                with open(self.path, "a") as f:
+                    f.write(json.dumps({**body, "hash": h}, sort_keys=True) + "\n")
+                    f.flush()
+                    if self.fsync:
+                        os.fsync(f.fileno())
             self._head = h
             return h
 
     def entries(self):
         """Yield all entries in order (parsed, unverified)."""
+        if self._mem is not None:
+            yield from self._mem
+            return
         if not os.path.exists(self.path):
             return
         with open(self.path) as f:
@@ -112,6 +122,17 @@ class Ledger:
     def verify(self) -> tuple[bool, int | None]:
         """Walk the full chain. Returns (True, None) or (False, first_bad_index)."""
         prev = GENESIS
+        if self._mem is not None:
+            for i, e in enumerate(self._mem):
+                try:
+                    body = {"ts": e["ts"], "prev": e["prev"], "record": e["record"]}
+                    entry_prev, entry_hash = e["prev"], e["hash"]
+                except (KeyError, TypeError):
+                    return False, i
+                if entry_prev != prev or entry_hash != _entry_hash(prev, body):
+                    return False, i
+                prev = entry_hash
+            return True, None
         if not os.path.exists(self.path):
             return True, None
         with open(self.path) as f:

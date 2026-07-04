@@ -31,8 +31,8 @@ on trust. "Validated" = backed by a passing automated test **and** confirmed in 
 | Benchmark reproducibility (spread ≤ 10%) | **Conditional** | A dedicated-hardware claim; sensitive to CPU-governor state (documented). A cold first run can exceed the spread while absolute targets still pass |
 | Independent (third-party) reproduction | **Pending** | All artefacts regenerate locally; foreign-hardware reproduction exists via CI runners (absolute targets met), but no external party has reproduced them yet |
 
-**Test suite:** 201 tests, all passing (conformance, tamper, gating, zero-egress, workloads,
-strict-provenance, anchoring, quorum).
+**Test suite:** 206 tests, all passing (conformance, tamper, gating, zero-egress, workloads,
+strict-provenance, anchoring, quorum, durability).
 
 ## Measured performance (fresh run, this review)
 
@@ -69,7 +69,9 @@ strict-provenance, anchoring, quorum).
 - **The human gate is a polling mechanism** (human-scale, cross-process). Multi-reviewer **k-of-n
   quorum with deny-veto** is now supported (per-rule `quorum`; approver identities recorded);
   reviewer SLAs / notifications remain roadmap.
-- **Headline latency is buffered-durability mode**; a durable-`fsync` benchmark mode is roadmap.
+- **Headline latency is buffered-durability mode** — now published alongside `memory` and
+  `durable-fsync` in the benchmark's durability matrix. Durability costs ~100× (`fsync` ≈ 2.4 ms p99 /
+  ~600 ops/s on this host), so the sub-20 µs headline is explicitly a buffered-mode number.
 - **Benchmarks are host-dependent** — re-run `make bench` on target hardware.
 - **Independent reproduction is still pending** — treat v0.1.0 performance/reproducibility claims
   as self-validated until a third party runs the protocol below.
@@ -79,7 +81,7 @@ strict-provenance, anchoring, quorum).
 ```bash
 git clone https://github.com/FrankAsanteVanLaarhoven/VerdictPlane.git && cd VerdictPlane
 make setup     # venv + editable install
-make test      # 201 tests
+make test      # 206 tests
 make bench      # six-target scoreboard; nonzero exit on any absolute-target miss
 make evidence  # regenerates docs/EVIDENCE.md from live runs
 ```

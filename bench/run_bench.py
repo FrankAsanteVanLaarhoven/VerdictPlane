@@ -310,6 +310,36 @@ def workloads_under_load(workdir, n):
     }
 
 
+def durability_matrix(workdir, n):
+    """Allow-path governance cost across ledger durability modes (T6).
+
+    memory (no disk, ephemeral — diagnostic lower bound) -> jsonl-buffered (default
+    headline) -> durable-fsync (crash-durable). Same policy + gate; only the ledger
+    durability changes, so the deltas isolate the cost of durability.
+    """
+    gate = AutoGate(os.path.join(workdir, "dm_gate"), poll_interval=0.001)
+    modes = [
+        ("memory", Ledger(None),
+         "in-memory only; ephemeral, no cross-process (diagnostic lower bound)"),
+        ("jsonl-buffered", Ledger(os.path.join(workdir, "buf.jsonl")),
+         "disk append + flush, no fsync (default headline); a crash may lose the buffered tail"),
+        ("durable-fsync", Ledger(os.path.join(workdir, "dur.jsonl"), fsync=True),
+         "fsync per append; crash-durable tail"),
+    ]
+    out = {}
+    for name, ledger, guarantee in modes:
+        env = dict(policy=POLICY, ledger=ledger, gate=gate)
+        for _ in range(500):  # warmup
+            govern(dict(ALLOW_ACTION), lambda: None, **env)
+        samples = time_calls(lambda: govern(dict(ALLOW_ACTION), lambda: None, **env), n)
+        t0 = time.perf_counter()
+        for _ in range(n):
+            govern(dict(ALLOW_ACTION), lambda: None, **env)
+        tp = n / (time.perf_counter() - t0)
+        out[name] = {**pcts(samples), "throughput_ops_per_sec": round(tp), "guarantee": guarantee}
+    return out
+
+
 def spread_pct(values):
     med = statistics.median(values)
     return round(100 * (max(values) - min(values)) / med, 1) if med else 0.0
@@ -365,6 +395,7 @@ def main():
         complete = completeness(shared)
         safe = fail_safe(shared)
         wl = workloads_under_load(shared, 5000)
+        dmatrix = durability_matrix(os.path.join(shared, "dm"), args.n)
 
         commit = (_git(["rev-parse", "HEAD"])
                   or os.environ.get("VERDICTPLANE_REPRO_COMMIT", "") or "unknown")
@@ -400,6 +431,7 @@ def main():
             "provenance_completeness": complete,
             "fail_safe": safe,
             "workloads_under_load": wl,
+            "durability_matrix": dmatrix,
         }
         stats["targets"] = {
             "allow_p99_under_1ms": max(allow_p99s) < 1000.0,
@@ -428,6 +460,12 @@ def write_report(s):
 
     def row(name, d):
         return f"| {name} | {d['p50_us']} | {d['p95_us']} | {d['p99_us']} |"
+
+    dm = s.get("durability_matrix", {})
+    dm_rows = "\n".join(
+        f"| {name} | {d['p50_us']} | {d['p95_us']} | {d['p99_us']} | "
+        f"{d['throughput_ops_per_sec']} | {d['guarantee']} |"
+        for name, d in dm.items())
 
     md = f"""# VerdictPlane — Benchmark Report (P5)
 
@@ -481,6 +519,19 @@ Full-chain verify: {lat['verify']['entries']} entries in {lat['verify']['seconds
 
 - Staging-promote throughput: {s['workloads_under_load']['promote_staging_ops_per_sec']} ops/s
 - Chain verifies after load: {s['workloads_under_load']['chain_ok_after_load']}
+
+## Durability-mode performance matrix (T6)
+
+Allow-path governance cost as the ledger durability mode varies (policy + gate held fixed, so the
+deltas isolate the cost of durability):
+
+| Mode | p50 µs | p95 µs | p99 µs | ops/s | guarantee |
+| --- | --- | --- | --- | --- | --- |
+{dm_rows}
+
+`memory` is a diagnostic lower bound (no persistence, no cross-process); `jsonl-buffered` is the
+deployable default; `durable-fsync` trades latency for a crash-durable tail. Tamper evidence is
+identical across all three.
 
 ## Fail-safe detail
 
