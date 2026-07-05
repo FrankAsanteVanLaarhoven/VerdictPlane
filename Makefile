@@ -33,6 +33,10 @@ eag-validate:
 enterprise-bench:
 	PYTHONPATH= $(PY) benchmarks/eag_bench/harness.py
 
+.PHONY: redteam-bench
+redteam-bench:
+	PYTHONPATH= $(PY) benchmarks/eag_bench/redteam/harness.py
+
 .PHONY: demo
 demo:
 	VERDICTPLANE_LEDGER=artifacts/demo/ledger.jsonl VERDICTPLANE_GATE=artifacts/demo/gate \

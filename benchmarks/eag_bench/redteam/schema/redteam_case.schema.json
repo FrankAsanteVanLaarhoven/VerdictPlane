@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FrankAsanteVanLaarhoven/VerdictPlane/eag-bench/redteam_case-1.0.json",
+  "title": "EAG-Bench Red-Team Case",
+  "description": "A multi-step / agentic attack against VerdictPlane, evaluated as a sequence of actions through the real govern() choke point under a shared ledger + gate (state carries across steps). Every case declares expected_outcome: defeated_by_design (per-action governance blocks the critical step -> 0 escapes) or known_boundary (per-action governance permits it; the danger is in the aggregate/timing -> honestly reported as a limitation, with the layer that would close it).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_schema_version", "case_id", "title", "category", "expected_outcome", "narrative", "steps", "source"],
+  "properties": {
+    "case_schema_version": { "const": "1.0" },
+    "case_id": { "type": "string", "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$" },
+    "title": { "type": "string", "minLength": 3 },
+    "category": { "enum": ["tool_chaining", "injection", "combination", "toctou", "replay"] },
+    "expected_outcome": { "enum": ["defeated_by_design", "known_boundary"] },
+    "narrative": { "type": "string", "minLength": 3, "description": "The attack story in one or two sentences." },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tool", "effect_type", "arguments", "expected_verdict"],
+        "properties": {
+          "actor": { "type": "string" },
+          "tool": { "type": "string" },
+          "effect_type": { "enum": ["read", "write", "delete", "execute", "admin", "network", "payment"] },
+          "arguments": { "type": "object", "additionalProperties": true },
+          "expected_verdict": { "enum": ["allow", "deny", "require_human", "allow_after_approval", "deny_after_timeout", "deny_after_veto"] },
+          "critical": { "type": "boolean", "description": "The decisive attack step. defeated: it must be blocked. known_boundary: it is permitted." },
+          "mutation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "timing"],
+            "properties": {
+              "kind": { "enum": ["none", "file_write", "db_update", "git_op", "deploy_flag", "iam_change", "network_call", "payment_instruction", "model_registry_mutation", "ticket_status", "robot_ot_dispatch"] },
+              "timing": { "enum": ["read_only", "after_allow", "after_approval", "after_quorum", "never"] }
+            }
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "block_reason": {
+      "enum": ["policy_deny", "gate_required", "gate_timeout", "gate_denied"],
+      "description": "For defeated_by_design: how VerdictPlane stopped the critical step."
+    },
+    "boundary_note": {
+      "type": "string",
+      "description": "For known_boundary: the layer that WOULD close it (e.g. stateful data-flow policy, action-effect integrity, single-use approval nonces)."
+    },
+    "attack_annotations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["framework", "id"],
+        "properties": {
+          "framework": { "enum": ["owasp_llm", "csa_caiq", "mitre_atlas", "custom"] },
+          "id": { "type": "string" },
+          "technique": { "type": "string" }
+        }
+      }
+    },
+    "source": { "enum": ["synthetic", "real", "anonymized"] },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "author": { "type": "string" },
+        "created": { "type": "string" },
+        "license": { "type": "string" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "A defeated case must say how VerdictPlane stopped it.",
+      "if": { "properties": { "expected_outcome": { "const": "defeated_by_design" } } },
+      "then": { "required": ["block_reason"] }
+    },
+    {
+      "$comment": "A boundary case must name the layer that would close it.",
+      "if": { "properties": { "expected_outcome": { "const": "known_boundary" } } },
+      "then": { "required": ["boundary_note"] }
+    }
+  ]
+}
