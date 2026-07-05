@@ -42,9 +42,14 @@ production model-promotion decisions from DriftGuard's measured runs (ag_news 20
 story: DriftGuard's *ML* gate passed both on quality; VerdictPlane's *action* policy independently
 routes prod promotions to dual-control approval. Real action shapes, policy-derived verdicts.
 
-**Next:** grow real traces as usage accrues (more DriftGuard runs, Sentinel logs, real VP deployments),
-then **EIGS-100 scoring** over the corpus + red-team + this real slice (scoped: mostly synthetic + a
-small real slice).
+**EIGS-100 scoring — ✅ SHIPPED** (`benchmarks/eag_bench/eag.py`, `make eag` → `docs/EAG_BENCH.md`):
+computed from real track runs, canonical roadmap allocation (non-equal by design), explicit
+critical-fail gating, T9 gap honest. **EIGS = 98/100, 0 critical** on the current corpus (scoped:
+mostly synthetic + red-team; real slice = early signal, NOT scored). `artifacts/eag.json` gitignored.
+
+**Next:** (a) grow the real slice — **Sentinel logs** (not reachable in this session; point me at the
+path) or a real VP deployment ledger → `replay.py`; (b) close the **T9 gap** — the OTel observability
+exporter (the only missing 2 points), keeping it provably unreachable from enforcement.
 
 **Then:** small `provenance` additions (`origin`, `deid_method`, `license`); a de-identification
 checklist (strip secrets/PII, tokenise identifiers, drop free-text, verify no real credentials,

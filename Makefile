@@ -41,6 +41,10 @@ redteam-bench:
 compliance-report:
 	PYTHONPATH= $(PY) benchmarks/eag_bench/compliance.py
 
+.PHONY: eag
+eag:
+	PYTHONPATH= $(PY) benchmarks/eag_bench/eag.py
+
 .PHONY: demo
 demo:
 	VERDICTPLANE_LEDGER=artifacts/demo/ledger.jsonl VERDICTPLANE_GATE=artifacts/demo/gate \
