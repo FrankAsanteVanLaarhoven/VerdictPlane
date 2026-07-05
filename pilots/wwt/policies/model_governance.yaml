@@ -1,0 +1,14 @@
+# WWT pilot policy for the model-governance intake (DriftGuard PromotionProposal).
+# First-match-wins; anything unmatched — including future producer actions this
+# policy has never heard of — falls to require_human (default-deny posture).
+# Layering: the producer's requires_human is an INPUT here, not a decision; this
+# policy may escalate an auto-promote to the human gate (producer proposes,
+# governor disposes).
+default: require_human
+rules:
+  - match: {tool: promote_model, args.risk_level: low, args.requires_human: false}
+    decision: allow
+  - match: {tool: promote_model, args.risk_level: high}
+    decision: deny
+  - match: {tool: block_deployment}
+    decision: deny          # the producer already refused; record it as blocked
