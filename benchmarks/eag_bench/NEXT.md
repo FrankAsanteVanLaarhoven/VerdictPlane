@@ -24,9 +24,21 @@ The work is *safe ingestion*, not new evaluation logic.
   (non-zero exit, no file written), and output is force-tagged `source: anonymized` (never `real`).
   CLI: `python benchmarks/eag_bench/deid.py <in.json ...> --out <dir>`.
 
-**Next: Wave-1 ingestion** — map ToolBench/WebArena trajectories → action cases, run each through
-`deid.py`, schema-validate, then `make enterprise-bench` (harness is source-agnostic). Verify each
-dataset's licence at ingest.
+**Wave-1 pivoted to self-owned traces** (public datasets deferred — see Sourcing below): the
+credibility-clean path is our own governed-action traces, not licence-encumbered public corpora.
+
+**Real-action replay track — ✅ SHIPPED** (`benchmarks/eag_bench/replay.py`, `tests/test_replay.py`):
+a VerdictPlane ledger record carries the action + verdict but NOT the benchmark scaffolding (domain,
+sentinel, sensitivity), so minting full `action_case` records from a trace would mean FABRICATING that
+scaffolding. Instead we **replay** each real action through `govern()` under the benchmark policy with
+an instrumented sink and report the **verdict distribution + unapproved-escape count** — real action
+shapes in, policy-derived verdicts out, zero fabricated scaffolding. Every action is de-id'd + gated
+(PII in an actor id → rejected, never governed) BEFORE replay.
+CLI: `python benchmarks/eag_bench/replay.py <trace.jsonl ...>` (ledger records or bare actions).
+
+**Next: feed a real self-owned trace** — a VerdictPlane ledger (or DriftGuard/Sentinel action log)
+from *actual* usage, run `replay.py`, and report the real verdict distribution + 0 escapes. This is the
+data **you** generate through real usage; the pipeline is turnkey and awaits it.
 
 **Then:** small `provenance` additions (`origin`, `deid_method`, `license`); a de-identification
 checklist (strip secrets/PII, tokenise identifiers, drop free-text, verify no real credentials,
@@ -47,15 +59,19 @@ must be scoped as such until real traces + external repro exist.
 **Real traces first** (biggest credibility lever), starting with the de-id safety rail. Do EIGS-100
 after, so the headline score reflects a partly-real corpus rather than a purely synthetic one.
 
-## Sourcing plan (decided)
+## Sourcing plan (revised after licence check)
 
-**Wave 1 — public, licence-clean agent/tool-use datasets** (build the pipeline + privacy gate here):
-prioritise **ToolBench/ToolEval** and **WebArena** (further candidates: GAIA, AgentBench). Extract
-consequential actions from the trajectories → action cases tagged `source: anonymized`.
-- **Verify each dataset's licence at ingest — do NOT assume "open".** Record it in `provenance.license`.
+**Wave 1 = self-owned traces** (was public datasets). Why the change: an empirical licence check of
+**ToolBench** found it ambiguous for a commercial product — the repo README states Apache-2.0 **but**
+adds an "intended solely for research and educational purposes" disclaimer, other sources cite
+**CC BY-NC 4.0** (NonCommercial), and the trajectories are crawled from **RapidAPI** (whose ToS govern
+the underlying content regardless). Not a clean Wave-1. So the licence-clean, higher-integrity path is
+our own governed-action traces (VerdictPlane / DriftGuard / Sentinel usage) — zero third-party licence
+risk, more governance-relevant, and the de-id gate already fits.
 
-**Wave 2 (later)** — self-owned / consented logs (VerdictPlane / DriftGuard / Sentinel usage; pilot
-data with explicit consent). Higher credibility; only after the de-id gate is proven on public data.
+**Public datasets (deferred, optional):** ToolBench/WebArena/GAIA/AgentBench remain candidates **only
+if** you personally clear the current `LICENSE` + upstream ToS for commercial derivation and record it
+in `provenance.license`. Do NOT assume "open".
 
 **Honest scope caveat (important):** these datasets supply real *action distributions / shapes*, not
 real enterprise *governance decisions* — the `expected_verdict` stays policy-derived. So the upgrade is

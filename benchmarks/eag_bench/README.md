@@ -26,8 +26,12 @@ Framed as an **open, standard-setting benchmark** for pre-execution action gover
    buckets: 8/8 defeated, 7/7 known-boundary; see [`redteam/README.md`](redteam/README.md)).
 6. **Compliance-evidence compiler** — ✅ **shipped** (`make compliance-report` →
    [`compliance/COVERAGE.md`](compliance/COVERAGE.md); EU AI Act / NIST / ISO + threat matrices,
-   framed as *coverage, not certification*). Next: real/anonymized traces, then EIGS-100 scoring.
-6. **EIGS-100 scoring only after the corpus + harness are stable.**
+   framed as *coverage, not certification*).
+7. **Real traces (self-owned).** De-identification safety rail — ✅ **shipped** (`deid.py`, hard gate:
+   reject on residual PII, never `real`). Real-action **replay track** — ✅ **shipped** (`replay.py`:
+   replay captured actions through `govern()`, report verdict distribution + 0 escapes, no fabricated
+   scaffolding). Next: feed a real self-owned ledger from actual usage.
+8. **EIGS-100 scoring only after the corpus + harness are stable.**
 
 ## Status & layout
 
