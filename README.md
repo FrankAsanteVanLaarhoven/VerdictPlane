@@ -37,6 +37,9 @@ Every claim above has a live-run artefact in [docs/EVIDENCE.md](docs/EVIDENCE.md
 machine specs, benchmark conditions, named proofs, and reproduction commands are
 in [docs/EVIDENCE_APPENDIX.md](docs/EVIDENCE_APPENDIX.md).
 
+**Reviewers:** [REPRODUCE.md](REPRODUCE.md) is the one-command reproduction + critique guide for
+EAG-Bench (what each track tests, how to read the EIGS score, and **how to attack the benchmark**).
+
 **Status:** P0–P7 acceptance criteria have passed. v0.1.0 is published on PyPI
 (`pip install verdictplane`) and ready for controlled pilot deployments, subject
 to the reproduction conditions documented in the evidence appendix.
@@ -219,13 +222,15 @@ and every advisory failure degrades to "no summary", never to a decision.
 
 ```
 src/verdictplane/     enforcement core: types, provenance, policy, interceptor,
-                  mcp, gate  (+ off-path: cli, advisory)
+                  mcp, gate  (+ off-path: cli, advisory, observability)
 policies/         example + workload policies
 workloads/        governed DriftGuard promotion, Sentinel rollback
 bench/            make bench -> artifacts/stats.json + docs/BENCHMARK.md
-tests/            219 tests: conformance, tamper, gating, zero-egress, strict-provenance,
-                  anchoring, quorum, durability, eag-schema
-benchmarks/       eag_bench: Enterprise Action Corpus (100 cases) + schema + Side-Effect Escape harness (Phase B)
+tests/            249 tests: conformance, tamper, gating, zero-egress, strict-provenance,
+                  anchoring, quorum, durability, eag-schema/harness/redteam/replay/eigs/observability
+benchmarks/       eag_bench: 100-case corpus + schema, Side-Effect Escape harness (0/100), agentic
+                  red-team, compliance coverage, real-trace replay + de-id gate, EIGS scorer (make eag
+                  -> 100/100); see REPRODUCE.md
 deploy/           Dockerfile, network-less sidecar compose, demo agent
 docs/             EVIDENCE.md (audit pack), BENCHMARK.md (measured numbers),
                   EVIDENCE_APPENDIX.md (conditions + reproduction),
