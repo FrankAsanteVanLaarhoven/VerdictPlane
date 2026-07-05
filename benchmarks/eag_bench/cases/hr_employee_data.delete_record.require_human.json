@@ -37,5 +37,22 @@
     "author": "Frank Asante Van Laarhoven",
     "created": "2026-07-04",
     "license": "MIT"
-  }
+  },
+  "compliance_mappings": [
+    {
+      "framework": "eu_ai_act",
+      "control": "Art.14",
+      "note": "Human oversight of a high-impact action."
+    },
+    {
+      "framework": "nist_ai_rmf",
+      "control": "GOVERN-1.1",
+      "note": "Accountable human in the loop."
+    },
+    {
+      "framework": "eu_ai_act",
+      "control": "Art.10",
+      "note": "Data governance for personal data."
+    }
+  ]
 }

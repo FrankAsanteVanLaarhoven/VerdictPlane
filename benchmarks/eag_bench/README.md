@@ -23,8 +23,10 @@ Framed as an **open, standard-setting benchmark** for pre-execution action gover
    metric. ✅ **shipped** (`make enterprise-bench` → **0/100 escapes**; `policies/eag_bench.yaml`).
 4. Policy-conformance / expected-verdict evaluation. ✅ (folded into the harness: verdict 100/100).
 5. **Agentic red-team track** (multi-step attacks) — ✅ **shipped** (`make redteam-bench`; two honest
-   buckets: 8/8 defeated, 7/7 known-boundary; see [`redteam/README.md`](redteam/README.md)). Next:
-   compliance-evidence compiler, then EIGS-100 scoring.
+   buckets: 8/8 defeated, 7/7 known-boundary; see [`redteam/README.md`](redteam/README.md)).
+6. **Compliance-evidence compiler** — ✅ **shipped** (`make compliance-report` →
+   [`compliance/COVERAGE.md`](compliance/COVERAGE.md); EU AI Act / NIST / ISO + threat matrices,
+   framed as *coverage, not certification*). Next: real/anonymized traces, then EIGS-100 scoring.
 6. **EIGS-100 scoring only after the corpus + harness are stable.**
 
 ## Status & layout

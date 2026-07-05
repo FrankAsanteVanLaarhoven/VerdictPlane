@@ -50,5 +50,22 @@
       "id": "LLM06",
       "technique": "Exfiltration to external endpoint"
     }
+  ],
+  "compliance_mappings": [
+    {
+      "framework": "nist_ai_rmf",
+      "control": "MANAGE-2.2",
+      "note": "Risk response: blocked pre-execution."
+    },
+    {
+      "framework": "iso_42001",
+      "control": "A.9.2",
+      "note": "Access-control enforcement."
+    },
+    {
+      "framework": "eu_ai_act",
+      "control": "Art.10",
+      "note": "Data governance for personal data."
+    }
   ]
 }

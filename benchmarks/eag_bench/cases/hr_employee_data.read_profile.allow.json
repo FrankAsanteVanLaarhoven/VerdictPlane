@@ -36,5 +36,12 @@
     "author": "Frank Asante Van Laarhoven",
     "created": "2026-07-04",
     "license": "MIT"
-  }
+  },
+  "compliance_mappings": [
+    {
+      "framework": "eu_ai_act",
+      "control": "Art.10",
+      "note": "Data governance for personal data."
+    }
+  ]
 }

@@ -49,5 +49,17 @@
       "id": "T0054",
       "technique": "Disable MFA"
     }
+  ],
+  "compliance_mappings": [
+    {
+      "framework": "nist_ai_rmf",
+      "control": "MANAGE-2.2",
+      "note": "Risk response: blocked pre-execution."
+    },
+    {
+      "framework": "iso_42001",
+      "control": "A.9.2",
+      "note": "Access-control enforcement."
+    }
   ]
 }
